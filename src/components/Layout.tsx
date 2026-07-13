@@ -1,4 +1,4 @@
-import { Bell, Coins, Home, Map, MessageCircle, PawPrint, ShoppingBag } from 'lucide-react'
+import { Backpack, Bell, Coins, Map, MessageCircle, PawPrint, ShoppingBag } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useGame } from '../state/GameContext'
 import { PetAvatar } from './PetAvatar'
@@ -7,6 +7,7 @@ import styles from './Layout.module.scss'
 const nav = [
   { to: '/town', label: 'Town', icon: Map },
   { to: '/pet', label: 'Pet', icon: PawPrint },
+  { to: '/bag', label: 'Bag', icon: Backpack },
   { to: '/market', label: 'Market', icon: ShoppingBag },
   { to: '/plaza', label: 'Chat', icon: MessageCircle },
 ]
@@ -28,7 +29,6 @@ export function Layout() {
       <main className={styles.main}><Outlet /></main>
       <nav className={styles.bottomNav} aria-label="Primary navigation">
         {nav.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? styles.active : ''}><Icon /><span>{label}</span></NavLink>)}
-        <NavLink to="/town" className={styles.desktopHome}><Home /><span>Home</span></NavLink>
       </nav>
     </div>
   )

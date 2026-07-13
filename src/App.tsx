@@ -12,6 +12,7 @@ import { Profile } from './views/Profile'
 import { Inbox } from './views/Inbox'
 import { AuthScreen } from './views/AuthScreen'
 import { ResetPassword } from './views/ResetPassword'
+import { Bag } from './views/Bag'
 
 export default function App() {
   const { state, status, error } = useGame()
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/town" element={<Town />} />
         <Route path="/pet" element={<PetHome />} />
         <Route path="/market" element={<Market />} />
+        <Route path="/bag" element={<Bag />} />
         <Route path="/workshop" element={<Workshop />} />
         <Route path="/plaza" element={<Plaza />} />
         <Route path="/arcade" element={<Arcade />} />
