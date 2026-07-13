@@ -5,6 +5,7 @@ import { useGame } from '../state/GameContext'
 import styles from './Arcade.module.scss'
 
 type Mode = 'menu' | 'bloom' | 'star'
+type RunResult = { reward: number; error?: string }
 
 export function Arcade() {
   const [mode, setMode] = useState<Mode>('menu')
@@ -35,20 +36,38 @@ function useCountdown(active: boolean, onEnd: () => void, seconds = 30) {
     }), 1000)
     return () => window.clearInterval(id)
   }, [active])
-  return time
+  return { time, reset: () => setTime(seconds) }
 }
 
 function BloomMatch({ close }: { close: () => void }) {
   const { startGame, gameReward } = useGame()
   const [active, setActive] = useState(false)
   const [score, setScore] = useState(0)
+  const scoreRef = useRef(0)
   const [cards, setCards] = useState(createBloomDeck)
   const [openIds, setOpenIds] = useState<number[]>([])
-  const [result, setResult] = useState<number | null>(null)
+  const [result, setResult] = useState<RunResult | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [startError, setStartError] = useState('')
   const [runId, setRunId] = useState('')
-  const begin = async () => { const id = await startGame('bloom-match'); setRunId(id); setActive(true) }
-  const finish = async () => { if (!active || !runId) return; setActive(false); setResult(await gameReward('bloom-match', score, runId)) }
-  const time = useCountdown(active, finish)
+  const finishingRef = useRef(false)
+  const finish = async () => {
+    if (!active || !runId || finishingRef.current) return
+    finishingRef.current = true
+    setActive(false)
+    setSubmitting(true)
+    try { setResult({ reward: await gameReward('bloom-match', scoreRef.current, runId) }) }
+    catch (error) { setResult({ reward: 0, error: error instanceof Error ? error.message : 'The reward could not be saved.' }) }
+    finally { setSubmitting(false) }
+  }
+  const { time, reset: resetCountdown } = useCountdown(active, finish)
+  const begin = async () => {
+    setStarting(true); setStartError(''); setResult(null); setCards(createBloomDeck()); setOpenIds([]); setScore(0); scoreRef.current = 0; finishingRef.current = false; resetCountdown()
+    try { const id = await startGame('bloom-match'); setRunId(id); setActive(true) }
+    catch (error) { setStartError(error instanceof Error ? error.message : 'The game could not start.') }
+    finally { setStarting(false) }
+  }
   const flip = (id: number) => {
     if (!active || openIds.length === 2) return
     const card = cards.find((entry) => entry.id === id)
@@ -56,15 +75,22 @@ function BloomMatch({ close }: { close: () => void }) {
     const nextOpen = [...openIds, id]
     setCards((current) => current.map((entry) => entry.id === id ? { ...entry, open: true } : entry))
     setOpenIds(nextOpen)
-    if (nextOpen.length === 2) window.setTimeout(() => {
-      setCards((current) => {
-        const [a, b] = nextOpen.map((cardId) => current.find((entry) => entry.id === cardId)!)
-        if (a.value === b.value) { setScore((value) => value + 50); return current.map((entry) => nextOpen.includes(entry.id) ? { ...entry, matched: true } : entry) }
-        return current.map((entry) => nextOpen.includes(entry.id) ? { ...entry, open: false } : entry)
-      }); setOpenIds([])
-    }, 500)
+    if (nextOpen.length === 2) {
+      const [a, b] = nextOpen.map((cardId) => cards.find((entry) => entry.id === cardId)!)
+      const matched = a.value === b.value
+      const clearsBoard = matched && cards.filter((entry) => entry.matched).length + 2 === cards.length
+      window.setTimeout(() => {
+        setCards((current) => current.map((entry) => nextOpen.includes(entry.id) ? { ...entry, open: matched, matched } : entry))
+        setOpenIds([])
+        if (matched) {
+          scoreRef.current += 50
+          setScore(scoreRef.current)
+          if (clearsBoard) window.setTimeout(() => { void finish() }, 0)
+        }
+      }, 500)
+    }
   }
-  return <GameShell title="Bloom Match" time={time} score={score} close={close}>{!active && result === null && <StartOverlay icon="🌸" title="Match every pair" onStart={() => void begin()} />}{result !== null && <Result score={score} reward={result} close={close} />}
+  return <GameShell title="Bloom Match" time={time} score={score} close={close}>{!active && result === null && !submitting && <StartOverlay icon="🌸" title="Match every pair" onStart={() => void begin()} starting={starting} error={startError} />}{submitting && <ResultPending />}{result !== null && <Result title="Garden cleared!" score={score} result={result} close={close} replay={() => void begin()} />}
     <div className={styles.memoryGrid}>{cards.map((card) => <button key={card.id} className={card.open || card.matched ? styles.flipped : ''} disabled={card.matched} onClick={() => flip(card.id)}><span>✦</span><b>{card.value}</b></button>)}</div>
   </GameShell>
 }
@@ -73,21 +99,40 @@ function StarCatch({ close }: { close: () => void }) {
   const { startGame, gameReward } = useGame()
   const [active, setActive] = useState(false)
   const [score, setScore] = useState(0)
+  const scoreRef = useRef(0)
   const [target, setTarget] = useState({ x: 50, y: 50, cloud: false, id: 0 })
-  const [result, setResult] = useState<number | null>(null)
+  const [result, setResult] = useState<RunResult | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [starting, setStarting] = useState(false)
+  const [startError, setStartError] = useState('')
   const [runId, setRunId] = useState('')
-  const begin = async () => { const id = await startGame('starwhisk-sprint'); setRunId(id); setActive(true) }
-  const finish = async () => { if (!active || !runId) return; setActive(false); setResult(await gameReward('starwhisk-sprint', score, runId)) }
-  const time = useCountdown(active, finish)
+  const finishingRef = useRef(false)
+  const finish = async () => {
+    if (!active || !runId || finishingRef.current) return
+    finishingRef.current = true
+    setActive(false)
+    setSubmitting(true)
+    try { setResult({ reward: await gameReward('starwhisk-sprint', scoreRef.current, runId) }) }
+    catch (error) { setResult({ reward: 0, error: error instanceof Error ? error.message : 'The reward could not be saved.' }) }
+    finally { setSubmitting(false) }
+  }
+  const { time, reset: resetCountdown } = useCountdown(active, finish)
+  const begin = async () => {
+    setStarting(true); setStartError(''); setResult(null); setScore(0); scoreRef.current = 0; finishingRef.current = false; resetCountdown()
+    try { const id = await startGame('starwhisk-sprint'); setRunId(id); setActive(true) }
+    catch (error) { setStartError(error instanceof Error ? error.message : 'The game could not start.') }
+    finally { setStarting(false) }
+  }
   useEffect(() => {
     if (!active) return
     const id = window.setInterval(() => setTarget((current) => ({ x: 8 + Math.random() * 78, y: 12 + Math.random() * 72, cloud: Math.random() < .24, id: current.id + 1 })), 720)
     return () => window.clearInterval(id)
   }, [active])
-  const hit = () => { if (!active) return; setScore((value) => Math.max(0, value + (target.cloud ? -25 : 20))); setTarget((current) => ({ x: 8 + Math.random() * 78, y: 12 + Math.random() * 72, cloud: Math.random() < .24, id: current.id + 1 })) }
-  return <GameShell title="Starwhisk Sprint" time={time} score={score} close={close}>{!active && result === null && <StartOverlay icon="🌠" title="Catch stars, dodge clouds" onStart={() => void begin()} />}{result !== null && <Result score={score} reward={result} close={close} />}<div className={styles.catchField}>{active && <button key={target.id} style={{ left: `${target.x}%`, top: `${target.y}%` }} className={target.cloud ? styles.cloud : ''} onPointerDown={hit}>{target.cloud ? '🌧️' : '⭐'}</button>}<div className={styles.hills} /></div></GameShell>
+  const hit = () => { if (!active) return; setScore((value) => { const next = Math.max(0, value + (target.cloud ? -25 : 20)); scoreRef.current = next; return next }); setTarget((current) => ({ x: 8 + Math.random() * 78, y: 12 + Math.random() * 72, cloud: Math.random() < .24, id: current.id + 1 })) }
+  return <GameShell title="Starwhisk Sprint" time={time} score={score} close={close}>{!active && result === null && !submitting && <StartOverlay icon="🌠" title="Catch stars, dodge clouds" onStart={() => void begin()} starting={starting} error={startError} />}{submitting && <ResultPending />}{result !== null && <Result title="Sprint complete!" score={score} result={result} close={close} replay={() => void begin()} />}<div className={styles.catchField}>{active && <button key={target.id} style={{ left: `${target.x}%`, top: `${target.y}%` }} className={target.cloud ? styles.cloud : ''} onPointerDown={hit}>{target.cloud ? '🌧️' : '⭐'}</button>}<div className={styles.hills} /></div></GameShell>
 }
 
 function GameShell({ title, time, score, close, children }: { title: string; time: number; score: number; close: () => void; children: React.ReactNode }) { return <section className={styles.gameShell}><header><button onClick={close}><ArrowLeft /> Exit</button><h1>{title}</h1><div><span><Timer /> {time}s</span><span><Sparkles /> {score}</span></div></header><div className={styles.playfield}>{children}</div></section> }
-function StartOverlay({ icon, title, onStart }: { icon: string; title: string; onStart: () => void }) { return <div className={styles.overlay}><b>{icon}</b><h2>{title}</h2><p>You have 30 seconds. Rewards are granted when the run ends.</p><button onClick={onStart}><Play fill="currentColor" /> Start game</button></div> }
-function Result({ score, reward, close }: { score: number; reward: number; close: () => void }) { return <div className={styles.overlay}><b>🏆</b><h2>Lovely run!</h2><p>You scored {score} and earned <strong>{reward} Dewdrops</strong>.</p><button onClick={close}>Back to arcade</button></div> }
+function StartOverlay({ icon, title, onStart, starting, error }: { icon: string; title: string; onStart: () => void; starting: boolean; error: string }) { return <div className={styles.overlay}><b>{icon}</b><h2>{title}</h2><p>You have 30 seconds. Rewards are granted when the run ends.</p>{error && <p className={styles.gameError} role="alert">{error}</p>}<button onClick={onStart} disabled={starting}><Play fill="currentColor" /> {starting ? 'Opening game…' : 'Start game'}</button></div> }
+function ResultPending() { return <div className={styles.overlay} aria-live="polite"><b className={styles.tally}>✦</b><h2>Tallying your sparkles…</h2><p>Your score is safe while Bramblewick prepares the reward.</p></div> }
+function Result({ title, score, result, close, replay }: { title: string; score: number; result: RunResult; close: () => void; replay: () => void }) { return <div className={styles.overlay} role="dialog" aria-live="polite"><b>🏆</b><h2>{title}</h2>{result.error ? <p className={styles.gameError}>You scored {score}, but the reward could not be saved: {result.error}</p> : <p>You scored {score} and earned <strong>{result.reward} Dewdrops</strong>.</p>}<div className={styles.resultActions}><button onClick={replay}><Play fill="currentColor" /> Play again</button><button className={styles.closeResult} onClick={close}>Close</button></div></div> }
