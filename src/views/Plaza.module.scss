@@ -112,6 +112,7 @@
   color: var(--muted);
   font-size: .7rem;
 }
+.manageFriends { display:flex; min-height:42px; flex:0 0 auto; align-items:center; gap:6px; padding:8px 10px; color:white; background:var(--teal-dark); border-radius:13px; font-size:.72rem; font-weight:900; white-space:nowrap; }.manageFriends svg { width:17px; }
 
 .friends button {
   display: flex;
@@ -348,6 +349,7 @@
   }
 
   .friends button { padding: 8px 5px; background: transparent; border-radius: 10px; }
+  .manageFriends { width:100%; justify-content:center; margin-bottom:4px; }
   .friends button.activeFriend { color: var(--plum); background: #e4d7e4; }
   .friends button > i { width: 10px; height: 10px; }
   .friends button > i.online { box-shadow: 0 0 0 3px #d4efdd; }

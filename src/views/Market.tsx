@@ -3,24 +3,26 @@ import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { featuredShopItems, items } from '../data'
 import { useGame } from '../state/GameContext'
+import { useCelebration } from '../components/Celebration'
 import styles from './Market.module.scss'
 
 export function Market() {
   const { state, buyShopItem, buyListing, createListing, toggleWishlist } = useGame()
+  const celebrate = useCelebration()
   const [params] = useSearchParams()
   const requestedTab = params.get('tab')
   const [tab, setTab] = useState<'market' | 'shop' | 'sell'>(requestedTab === 'sell' || requestedTab === 'shop' ? requestedTab : 'market')
   const [search, setSearch] = useState('')
   const [toast, setToast] = useState('')
   const listings = useMemo(() => state.listings.filter((listing) => items.find((item) => item.id === listing.itemId)?.name.toLowerCase().includes(search.toLowerCase())), [state.listings, search])
-  const purchase = async (operation: boolean | Promise<boolean>) => { const success = await operation; setToast(success ? 'Tucked safely into your bag!' : 'That purchase could not be completed.'); window.setTimeout(() => setToast(''), 2200) }
+  const purchase = async (operation: boolean | Promise<boolean>, item: (typeof items)[number]) => { const success = await operation; if (success) celebrate({ icon: item.icon, title: 'Treasure acquired!', detail: `${item.name} is tucked safely in your bag.` }); else { setToast('That purchase could not be completed.'); window.setTimeout(() => setToast(''), 2200) } }
   return <div className={styles.page}>
     {toast && <div className={styles.toast}>{toast}</div>}
     <header className="pageHeader"><div><span>MERRY MARKET</span><h1>Find a little treasure</h1><p>Browse Keeper listings or today’s friendly shop rotation.</p></div><div className={styles.tabs}><button className={tab === 'market' ? styles.active : ''} onClick={() => setTab('market')}><ShoppingBag /> Market</button><button className={tab === 'shop' ? styles.active : ''} onClick={() => setTab('shop')}><Store /> Store</button><button className={tab === 'sell' ? styles.active : ''} onClick={() => setTab('sell')}><PackagePlus /> Sell</button></div></header>
     {tab !== 'sell' && <><label className={styles.search}><Search /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search treasures…" /></label><div className={styles.meta}><strong>{tab === 'market' ? listings.length : featuredShopItems.length} treasures</strong><span>Fixed prices • Safe checkout</span></div></>}
-    {tab === 'sell' && <SellPanel state={state} initialItemId={params.get('item')??''} onCreate={async (itemId,quantity,price)=>{const success=await createListing(itemId,quantity,price);setToast(success?'Your listing is live!':'That listing could not be created.');return success}} />}
+    {tab === 'sell' && <SellPanel state={state} initialItemId={params.get('item')??''} onCreate={async (itemId,quantity,price)=>{const success=await createListing(itemId,quantity,price);const item=items.find((entry)=>entry.id===itemId);if(success)celebrate({icon:item?.icon??'📦',title:'Your listing is live!',detail:`${quantity} × ${item?.name??'treasure'} is ready for a new Keeper.`});else{setToast('That listing could not be created.');window.setTimeout(()=>setToast(''),2200)}return success}} />}
     {tab !== 'sell' && <section className={styles.grid}>
-      {tab === 'market' ? listings.map((listing) => { const item = items.find((entry) => entry.id === listing.itemId)!; const owned=listing.seller===state.username; return <ItemCard key={listing.id} item={item} price={listing.price} sub={owned?'Listed by you':`Sold by ${listing.seller}`} owned={owned} wished={state.wishlist.includes(item.id)} onWish={() => void toggleWishlist(item.id)} onBuy={() => void purchase(buyListing(listing.id))} /> }) : featuredShopItems.filter((item) => item.name.toLowerCase().includes(search.toLowerCase())).map((item) => <ItemCard key={item.id} item={item} price={item.price} sub="Bramblewick General" owned={false} wished={state.wishlist.includes(item.id)} onWish={() => void toggleWishlist(item.id)} onBuy={() => void purchase(buyShopItem(item.id))} />)}
+      {tab === 'market' ? listings.map((listing) => { const item = items.find((entry) => entry.id === listing.itemId)!; const owned=listing.seller===state.username; return <ItemCard key={listing.id} item={item} price={listing.price} sub={owned?'Listed by you':`Sold by ${listing.seller}`} owned={owned} wished={state.wishlist.includes(item.id)} onWish={() => void toggleWishlist(item.id)} onBuy={() => void purchase(buyListing(listing.id), item)} /> }) : featuredShopItems.filter((item) => item.name.toLowerCase().includes(search.toLowerCase())).map((item) => <ItemCard key={item.id} item={item} price={item.price} sub="Bramblewick General" owned={false} wished={state.wishlist.includes(item.id)} onWish={() => void toggleWishlist(item.id)} onBuy={() => void purchase(buyShopItem(item.id), item)} />)}
     </section>}
   </div>
 }

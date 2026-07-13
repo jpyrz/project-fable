@@ -1,5 +1,6 @@
 import { Bath, Cookie, Gamepad2, Heart, Shirt } from 'lucide-react'
 import { items } from '../data'
+import { useCelebration } from '../components/Celebration'
 import { PetAvatar } from '../components/PetAvatar'
 import { getSpecies, useGame } from '../state/GameContext'
 import type { CareKind } from '../types'
@@ -7,12 +8,15 @@ import styles from './PetHome.module.scss'
 
 export function PetHome() {
   const { activePet, care, state, equip } = useGame()
+  const celebrate = useCelebration()
   if (!activePet) return null
   const kind = getSpecies(activePet.speciesId)
   const closet = items.filter((item) => (state.inventory[item.id] ?? 0) > 0 && ['accessory', 'background'].includes(item.category))
   const careActions: { kind: CareKind; label: string; icon: typeof Cookie }[] = [
     { kind: 'food', label: 'Feed', icon: Cookie }, { kind: 'groom', label: 'Groom', icon: Bath }, { kind: 'play', label: 'Play', icon: Gamepad2 },
   ]
+  const giveCare = async (action: CareKind, label: string) => { await care(action); celebrate({ icon: action === 'food' ? '🍓' : action === 'groom' ? '🫧' : '💗', title: `${activePet.name} feels wonderful!`, detail: `${label} gave their needs a cozy boost.` }) }
+  const equipItem = async (itemId: string, name: string, icon: string) => { await equip(itemId); celebrate({ icon, title: 'Looking fabulous!', detail: `${name} is now equipped.` }) }
   return <div className={styles.page}>
     <section className={styles.hero}>
       <div className={styles.petStage}><span className={styles.bubble}>“The town smells like sunberries today!”</span><PetAvatar pet={activePet} /><div className={styles.nameplate}><h1>{activePet.name}</h1><span>{kind.name} • {activePet.variant === 'tufted' ? 'Tufted' : 'Classic'} • {activePet.pronouns}</span></div></div>
@@ -21,11 +25,11 @@ export function PetHome() {
         <Stat label="Tummy" value={activePet.hunger} color="#f09b68" emoji="🍓" />
         <Stat label="Joy" value={activePet.mood} color="#e36c83" emoji="💗" />
         <Stat label="Sparkle" value={activePet.cleanliness} color="#53b9bd" emoji="🫧" />
-        <div className={styles.actions}>{careActions.map(({ kind: action, label, icon: Icon }) => <button key={action} onClick={() => void care(action)}><Icon /><span>{label}</span></button>)}</div>
+        <div className={styles.actions}>{careActions.map(({ kind: action, label, icon: Icon }) => <button key={action} onClick={() => void giveCare(action, label)}><Icon /><span>{label}</span></button>)}</div>
         <p>Care gives a cozy boost. Your Fable will never be harmed by time away.</p>
       </div>
     </section>
-    <section className={styles.closet}><header><div><span>YOUR CLOSET</span><h2>Dress up for an adventure</h2></div><Shirt /></header>{closet.length ? <div className={styles.itemRow}>{closet.map((item) => <button key={item.id} onClick={() => void equip(item.id)}><b>{item.icon}</b><span>{item.name}</span><small>Equip</small></button>)}</div> : <div className={styles.empty}>Craft or buy an accessory to start dressing up.</div>}</section>
+    <section className={styles.closet}><header><div><span>YOUR CLOSET</span><h2>Dress up for an adventure</h2></div><Shirt /></header>{closet.length ? <div className={styles.itemRow}>{closet.map((item) => <button key={item.id} onClick={() => void equipItem(item.id, item.name, item.icon)}><b>{item.icon}</b><span>{item.name}</span><small>Equip</small></button>)}</div> : <div className={styles.empty}>Craft or buy an accessory to start dressing up.</div>}</section>
   </div>
 }
 

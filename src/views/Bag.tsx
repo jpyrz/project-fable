@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { items } from '../data'
 import { useGame } from '../state/GameContext'
+import { useCelebration } from '../components/Celebration'
 import type { ItemCategory } from '../types'
 import styles from './Bag.module.scss'
 
@@ -20,10 +21,10 @@ const filters: { id: Filter; label: string; icon: string }[] = [
 
 export function Bag() {
   const { state, activePet, equip } = useGame()
+  const celebrate = useCelebration()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
   const [equipping, setEquipping] = useState('')
-  const [toast, setToast] = useState('')
   const owned = useMemo(() => items.filter((item) => {
     if ((state.inventory[item.id] ?? 0) < 1) return false
     if (filter !== 'all' && item.category !== filter) return false
@@ -37,13 +38,12 @@ export function Bag() {
     setEquipping(itemId)
     try {
       await equip(itemId)
-      setToast(`${name} is now equipped!`)
-      window.setTimeout(() => setToast(''), 2200)
+      const item = items.find((entry) => entry.id === itemId)
+      celebrate({ icon: item?.icon ?? '🎀', title: 'Looking fabulous!', detail: `${name} is now equipped.` })
     } finally { setEquipping('') }
   }
 
   return <div className={styles.page}>
-    {toast && <div className={styles.toast} role="status">{toast}</div>}
     <header className="pageHeader"><div><span>KEEPER'S BAG</span><h1>Your gathered treasures</h1><p>Everything you discover, craft, and purchase has a home here.</p></div><Backpack /></header>
     <section className={styles.summary} aria-label="Bag summary">
       <div><Backpack /><span><b>{totalItems}</b><small>Total items</small></span></div>
