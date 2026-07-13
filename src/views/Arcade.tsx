@@ -7,6 +7,12 @@ import styles from './Arcade.module.scss'
 type Mode = 'menu' | 'bloom' | 'star'
 type RunResult = { reward: number; error?: string }
 
+function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') return error.message
+  return fallback
+}
+
 export function Arcade() {
   const [mode, setMode] = useState<Mode>('menu')
   return <div className={styles.page}>{mode === 'menu' ? <ArcadeMenu play={setMode} /> : mode === 'bloom' ? <BloomMatch close={() => setMode('menu')} /> : <StarCatch close={() => setMode('menu')} />}</div>
@@ -58,14 +64,14 @@ function BloomMatch({ close }: { close: () => void }) {
     setActive(false)
     setSubmitting(true)
     try { setResult({ reward: await gameReward('bloom-match', scoreRef.current, runId) }) }
-    catch (error) { setResult({ reward: 0, error: error instanceof Error ? error.message : 'The reward could not be saved.' }) }
+    catch (error) { setResult({ reward: 0, error: errorMessage(error, 'The reward could not be saved.') }) }
     finally { setSubmitting(false) }
   }
   const { time, reset: resetCountdown } = useCountdown(active, finish)
   const begin = async () => {
     setStarting(true); setStartError(''); setResult(null); setCards(createBloomDeck()); setOpenIds([]); setScore(0); scoreRef.current = 0; finishingRef.current = false; resetCountdown()
     try { const id = await startGame('bloom-match'); setRunId(id); setActive(true) }
-    catch (error) { setStartError(error instanceof Error ? error.message : 'The game could not start.') }
+    catch (error) { setStartError(errorMessage(error, 'The game could not start.')) }
     finally { setStarting(false) }
   }
   const flip = (id: number) => {
@@ -113,14 +119,14 @@ function StarCatch({ close }: { close: () => void }) {
     setActive(false)
     setSubmitting(true)
     try { setResult({ reward: await gameReward('starwhisk-sprint', scoreRef.current, runId) }) }
-    catch (error) { setResult({ reward: 0, error: error instanceof Error ? error.message : 'The reward could not be saved.' }) }
+    catch (error) { setResult({ reward: 0, error: errorMessage(error, 'The reward could not be saved.') }) }
     finally { setSubmitting(false) }
   }
   const { time, reset: resetCountdown } = useCountdown(active, finish)
   const begin = async () => {
     setStarting(true); setStartError(''); setResult(null); setScore(0); scoreRef.current = 0; finishingRef.current = false; resetCountdown()
     try { const id = await startGame('starwhisk-sprint'); setRunId(id); setActive(true) }
-    catch (error) { setStartError(error instanceof Error ? error.message : 'The game could not start.') }
+    catch (error) { setStartError(errorMessage(error, 'The game could not start.')) }
     finally { setStarting(false) }
   }
   useEffect(() => {
