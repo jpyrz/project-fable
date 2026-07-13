@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { Session } from '@supabase/supabase-js'
 import { items } from '../data'
 import { supabase } from '../lib/supabase'
-import type { DailyTask, GameState, Pet, SpeciesId } from '../types'
+import type { DailyTask, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 
 interface Snapshot {
@@ -35,6 +35,16 @@ interface CompanionPet {
 }
 
 interface DailyAdventures { tasks: DailyTask[]; reset_at: string }
+
+interface PublicKeeperResult {
+  username: string
+  reputation: number
+  reputation_xp: number
+  active_pet: CompanionPet | null
+  collected: string[]
+  wishlist: string[]
+  friend_count: number
+}
 
 const emptyState: GameState = {
   onboarded: false,
@@ -173,6 +183,10 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
       if (!state.activePetId) return
       await rpc('care_pet', { p_pet: state.activePetId, p_kind: kind }); await refresh()
     },
+    async feed(itemId) {
+      if (!state.activePetId) return
+      await rpc('feed_pet', { p_pet: state.activePetId, p_item: itemId }); await refresh()
+    },
     async buyShopItem(itemId) {
       try { await rpc('buy_shop_item', { p_item: itemId, p_idempotency_key: crypto.randomUUID() }); await refresh(); return true } catch { return false }
     },
@@ -237,6 +251,30 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
       setRecoveryMode(false); await refresh()
     },
     refresh,
+    async getPublicProfile(username) {
+      const result = await rpc('get_public_keeper_profile', { p_username: username }) as PublicKeeperResult
+      const pet = result.active_pet
+      return {
+        username: result.username,
+        reputation: result.reputation,
+        reputationXp: result.reputation_xp,
+        activePet: pet ? {
+          id: pet.id,
+          name: pet.name,
+          speciesId: pet.species_id,
+          palette: pet.palette,
+          variant: pet.variant,
+          pronouns: pet.pronouns,
+          hunger: pet.hunger,
+          mood: pet.mood,
+          cleanliness: pet.cleanliness,
+          equipped: pet.equipped,
+        } : null,
+        collected: result.collected,
+        wishlist: result.wishlist,
+        friendCount: result.friend_count,
+      } satisfies PublicKeeperProfile
+    },
     resetDemo() {},
   }), [client, error, refresh, rpc, session, state, status])
 

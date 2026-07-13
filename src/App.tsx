@@ -14,6 +14,7 @@ import { AuthScreen } from './views/AuthScreen'
 import { ResetPassword } from './views/ResetPassword'
 import { Bag } from './views/Bag'
 import { Friends } from './views/Friends'
+import { KeeperProfile } from './views/KeeperProfile'
 
 export default function App() {
   const { state, status, error } = useGame()
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/profile" element={<Profile />} />
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/friends" element={<Friends />} />
+        <Route path="/keeper/:username" element={<KeeperProfile />} />
         <Route path="*" element={<Navigate to="/town" replace />} />
       </Route>
     </Routes>

@@ -20,7 +20,7 @@ export function CelebrationProvider({ children }: { children: ReactNode }) {
   const celebrate = useCallback((next: CelebrationMoment) => {
     window.clearTimeout(timeout.current)
     setMoment(next)
-    timeout.current = window.setTimeout(() => setMoment(null), next.level === 'major' ? 3600 : 2400)
+    timeout.current = window.setTimeout(() => setMoment(null), next.level === 'major' ? 6000 : 4200)
   }, [])
 
   useEffect(() => () => window.clearTimeout(timeout.current), [])

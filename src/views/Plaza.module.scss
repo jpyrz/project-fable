@@ -233,7 +233,7 @@
 
 .own > div:nth-child(2) { background: #f3e7f1; }
 .messages p { display: flex; align-items: baseline; gap: 7px; margin: 0 0 3px; }
-.messages p b { overflow: hidden; color: var(--plum); font-size: .74rem; text-overflow: ellipsis; }
+.messages p > a { overflow: hidden; color: var(--plum); font-size: .74rem; font-weight: 900; text-overflow: ellipsis; }
 .messages time { flex: 0 0 auto; color: var(--muted); font-size: .62rem; }
 .messages article span { overflow-wrap: anywhere; font-size: .82rem; }
 

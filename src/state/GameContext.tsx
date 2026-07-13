@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { items, recipes, species } from '../data'
 import { calculateGameReward } from '../lib/gameLogic'
-import type { GameState, SpeciesId } from '../types'
+import type { GameState, PublicKeeperProfile, SpeciesId } from '../types'
 import { supabase } from '../lib/supabase'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 import { SupabaseGameProvider } from './SupabaseGameProvider'
@@ -99,6 +99,21 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
         }),
       }, 'care'))
     },
+    feed(itemId) {
+      const food = items.find((item) => item.id === itemId && item.category === 'food')
+      if (!food || (state.inventory[itemId] ?? 0) < 1) throw new Error('That food is not in your bag.')
+      if ((activePet?.hunger ?? 100) >= 100) throw new Error(`${activePet?.name ?? 'Your pet'} is already full.`)
+      const boost = { Common: 18, Uncommon: 24, Rare: 30, Mythic: 38 }[food.rarity]
+      setState((s) => incrementTask({
+        ...s,
+        inventory: { ...s.inventory, [itemId]: s.inventory[itemId] - 1 },
+        pets: s.pets.map((pet) => pet.id !== s.activePetId ? pet : {
+          ...pet,
+          hunger: Math.min(100, pet.hunger + boost),
+          mood: Math.min(100, pet.mood + 2),
+        }),
+      }, 'care'))
+    },
     buyShopItem(itemId) {
       const item = items.find((entry) => entry.id === itemId)
       if (!item || state.coins < item.price) return false
@@ -174,6 +189,24 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     async sendPasswordReset() {},
     async updatePassword() {},
     async refresh() {},
+    getPublicProfile(username) {
+      const isSelf = username.toLowerCase() === state.username.toLowerCase()
+      const friend = state.friends.find((entry) => entry.name.toLowerCase() === username.toLowerCase())
+      if (!isSelf && !friend) throw new Error('Keeper not found.')
+      const previewPet = isSelf ? activePet ?? null : {
+        id: friend!.id,
+        name: friend!.pet,
+        speciesId: 'mossling' as const,
+        palette: friend!.name.length % 3,
+        variant: friend!.name.length % 2 ? 'tufted' as const : 'classic' as const,
+        pronouns: 'they/them' as const,
+        hunger: 80,
+        mood: 85,
+        cleanliness: 78,
+        equipped: {},
+      }
+      return { username: isSelf ? state.username : friend!.name, reputation: isSelf ? state.reputation : 1, reputationXp: isSelf ? state.reputationXp : 0, activePet: previewPet, collected: isSelf ? state.collected : [], wishlist: isSelf ? state.wishlist : [], friendCount: isSelf ? state.friends.length : 1 } satisfies PublicKeeperProfile
+    },
     resetDemo() { localStorage.removeItem(key); setState(initialState) },
   }), [state, activePet])
 

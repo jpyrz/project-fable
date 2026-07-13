@@ -94,3 +94,13 @@ export interface GameState {
   friends: Friend[]
   friendRequests: FriendRequest[]
 }
+
+export interface PublicKeeperProfile {
+  username: string
+  reputation: number
+  reputationXp: number
+  activePet: Pet | null
+  collected: string[]
+  wishlist: string[]
+  friendCount: number
+}
