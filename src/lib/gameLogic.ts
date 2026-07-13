@@ -13,3 +13,21 @@ export function validateRun(score: number, elapsedSeconds: number) {
 export function reputationLevel(xp: number) {
   return Math.max(1, Math.floor(xp / 100) + 1)
 }
+
+const bloomSymbols = ['🌸', '🌼', '🌺', '🌻', '🌷', '🌹']
+
+export interface BloomCard {
+  id: number
+  value: string
+  open: boolean
+  matched: boolean
+}
+
+export function createBloomDeck(random = Math.random): BloomCard[] {
+  const deck = [...bloomSymbols, ...bloomSymbols].map((value, id) => ({ id, value, open: false, matched: false }))
+  for (let index = deck.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(random() * (index + 1))
+    ;[deck[index], deck[swapIndex]] = [deck[swapIndex], deck[index]]
+  }
+  return deck
+}

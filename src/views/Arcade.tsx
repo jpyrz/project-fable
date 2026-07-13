@@ -1,10 +1,10 @@
 import { ArrowLeft, Play, Sparkles, Timer, Trophy } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createBloomDeck } from '../lib/gameLogic'
 import { useGame } from '../state/GameContext'
 import styles from './Arcade.module.scss'
 
 type Mode = 'menu' | 'bloom' | 'star'
-const blooms = ['🌸', '🌼', '🌺', '🌻']
 
 export function Arcade() {
   const [mode, setMode] = useState<Mode>('menu')
@@ -21,11 +21,20 @@ function GameCard({ title, label, description, icon, color, onClick }: { title: 
 
 function useCountdown(active: boolean, onEnd: () => void, seconds = 30) {
   const [time, setTime] = useState(seconds)
+  const onEndRef = useRef(onEnd)
+  onEndRef.current = onEnd
   useEffect(() => {
     if (!active) return
-    const id = window.setInterval(() => setTime((value) => { if (value <= 1) { window.clearInterval(id); window.setTimeout(onEnd, 0); return 0 } return value - 1 }), 1000)
+    const id = window.setInterval(() => setTime((value) => {
+      if (value <= 1) {
+        window.clearInterval(id)
+        window.setTimeout(() => onEndRef.current(), 0)
+        return 0
+      }
+      return value - 1
+    }), 1000)
     return () => window.clearInterval(id)
-  }, [active, onEnd])
+  }, [active])
   return time
 }
 
@@ -33,7 +42,7 @@ function BloomMatch({ close }: { close: () => void }) {
   const { startGame, gameReward } = useGame()
   const [active, setActive] = useState(false)
   const [score, setScore] = useState(0)
-  const [cards, setCards] = useState(() => shuffle([...blooms, ...blooms, ...blooms].slice(0, 12).map((value, id) => ({ id, value, open: false, matched: false }))))
+  const [cards, setCards] = useState(createBloomDeck)
   const [openIds, setOpenIds] = useState<number[]>([])
   const [result, setResult] = useState<number | null>(null)
   const [runId, setRunId] = useState('')
@@ -82,4 +91,3 @@ function StarCatch({ close }: { close: () => void }) {
 function GameShell({ title, time, score, close, children }: { title: string; time: number; score: number; close: () => void; children: React.ReactNode }) { return <section className={styles.gameShell}><header><button onClick={close}><ArrowLeft /> Exit</button><h1>{title}</h1><div><span><Timer /> {time}s</span><span><Sparkles /> {score}</span></div></header><div className={styles.playfield}>{children}</div></section> }
 function StartOverlay({ icon, title, onStart }: { icon: string; title: string; onStart: () => void }) { return <div className={styles.overlay}><b>{icon}</b><h2>{title}</h2><p>You have 30 seconds. Rewards are granted when the run ends.</p><button onClick={onStart}><Play fill="currentColor" /> Start game</button></div> }
 function Result({ score, reward, close }: { score: number; reward: number; close: () => void }) { return <div className={styles.overlay}><b>🏆</b><h2>Lovely run!</h2><p>You scored {score} and earned <strong>{reward} Dewdrops</strong>.</p><button onClick={close}>Back to arcade</button></div> }
-function shuffle<T>(values: T[]) { return [...values].sort(() => Math.random() - .5) }

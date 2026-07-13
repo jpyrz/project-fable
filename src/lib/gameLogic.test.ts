@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateGameReward, calculateMarketFee, reputationLevel, validateRun } from './gameLogic'
+import { calculateGameReward, calculateMarketFee, createBloomDeck, reputationLevel, validateRun } from './gameLogic'
 
 describe('economy rules', () => {
   it('caps arcade rewards and preserves a participation minimum', () => {
@@ -18,5 +18,12 @@ describe('economy rules', () => {
   it('advances reputation every 100 XP', () => {
     expect(reputationLevel(0)).toBe(1)
     expect(reputationLevel(205)).toBe(3)
+  })
+  it('creates a Bloom Match deck with exactly six complete pairs', () => {
+    const deck = createBloomDeck(() => .42)
+    const counts = deck.reduce<Record<string, number>>((result, card) => ({ ...result, [card.value]: (result[card.value] ?? 0) + 1 }), {})
+    expect(deck).toHaveLength(12)
+    expect(Object.keys(counts)).toHaveLength(6)
+    expect(Object.values(counts)).toEqual([2, 2, 2, 2, 2, 2])
   })
 })
