@@ -1,0 +1,24 @@
+.shell { min-height: 100dvh; color: var(--ink); }
+.topbar { position: sticky; z-index: 20; top: 0; display: flex; align-items: center; justify-content: space-between; height: 68px; padding: 8px max(16px, env(safe-area-inset-left)); background: rgba(255,248,232,.92); border-bottom: 2px solid rgba(104,65,95,.12); backdrop-filter: blur(14px); }
+.brand { display: grid; grid-template-columns: auto auto; grid-template-rows: 1fr 1fr; column-gap: 8px; align-items: center; color: var(--plum); text-align: left; }
+.brand > span { grid-row: 1 / 3; display: grid; place-items: center; width: 38px; height: 38px; color: white; background: var(--coral); border: 3px solid var(--plum); border-radius: 45% 55% 45% 55%; rotate: -6deg; }
+.brand b { font-family: var(--display); font-size: 1.1rem; line-height: 1; }
+.brand small { font-size: .59rem; font-weight: 900; letter-spacing: .14em; color: var(--muted); }
+.status { display: flex; align-items: center; gap: 8px; }
+.coins { display: flex; align-items: center; gap: 5px; padding: 8px 10px; color: #6f4b00; background: #ffe08a; border: 2px solid #d7a733; border-radius: 999px; font-weight: 900; }
+.bell, .avatar { position: relative; display: grid; place-items: center; width: 42px; height: 42px; color: var(--plum); background: white; border: 2px solid rgba(104,65,95,.16); border-radius: 50%; }
+.bell i { position: absolute; top: -4px; right: -3px; min-width: 18px; padding: 2px; color: white; background: var(--coral); border-radius: 99px; font-size: .65rem; font-style: normal; }
+.avatar { overflow: hidden; }
+.main { width: min(100%, 1180px); min-height: calc(100dvh - 136px); margin: auto; padding-bottom: 88px; }
+.bottomNav { position: fixed; z-index: 20; right: 10px; bottom: max(10px, env(safe-area-inset-bottom)); left: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 6px; background: rgba(92,57,82,.96); border: 2px solid #4f3047; border-radius: 22px; box-shadow: 0 8px 30px rgba(61,34,54,.28); }
+.bottomNav a { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 4px; color: #eadbe5; border-radius: 16px; font-size: .7rem; font-weight: 800; }
+.bottomNav svg { width: 21px; }
+.bottomNav a.active { color: var(--plum); background: var(--cream); transform: translateY(-2px); }
+.desktopHome { display: none !important; }
+@media (min-width: 820px) {
+  .main { padding: 0 24px 40px; }
+  .bottomNav { top: 88px; right: auto; bottom: auto; left: 24px; display: flex; width: 88px; flex-direction: column; }
+  .bottomNav a { padding: 12px 4px; }
+  .shell { padding-left: 112px; }
+  .topbar { margin-left: -112px; padding-left: 24px; }
+}
