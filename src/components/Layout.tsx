@@ -2,6 +2,7 @@ import { Backpack, Bell, Coins, Map, MessageCircle, PawPrint, ShoppingBag } from
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useGame } from '../state/GameContext'
 import { PetAvatar } from './PetAvatar'
+import { CompanionDock } from './CompanionDock'
 import styles from './Layout.module.scss'
 
 const nav = [
@@ -27,6 +28,7 @@ export function Layout() {
         </div>
       </header>
       <main className={styles.main}><Outlet /></main>
+      <CompanionDock />
       <nav className={styles.bottomNav} aria-label="Primary navigation">
         {nav.map(({ to, label, icon: Icon }) => <NavLink key={to} to={to} className={({ isActive }) => isActive ? styles.active : ''}><Icon /><span>{label}</span></NavLink>)}
       </nav>

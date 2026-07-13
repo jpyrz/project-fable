@@ -38,10 +38,11 @@ const initialState: GameState = {
     { id: 'n2', text: 'Your daily tasks have refreshed!', read: false },
   ],
   tasks: [
-    { id: 'care', label: 'Care for your active pet', progress: 0, target: 2, reward: 60, claimed: false },
-    { id: 'play', label: 'Play an arcade game', progress: 0, target: 1, reward: 80, claimed: false },
-    { id: 'collect', label: 'Collect 2 items', progress: 0, target: 2, reward: 100, claimed: false },
+    { id: 'care', kind: 'care', label: 'Care for your active pet', progress: 0, target: 2, reward: 60, claimed: false },
+    { id: 'play', kind: 'play', label: 'Play an arcade game', progress: 0, target: 1, reward: 80, claimed: false },
+    { id: 'collect', kind: 'collect', label: 'Collect 2 items', progress: 0, target: 2, reward: 100, claimed: false },
   ],
+  dailyResetAt: new Date(new Date().setUTCHours(24, 0, 0, 0)).toISOString(),
   dailyWishClaimed: false,
   friends: [{ id: 'friend-1', name: 'JuniperJay', pet: 'Sprig', online: true }, { id: 'friend-2', name: 'MallowMoon', pet: 'Nimbus', online: true }, { id: 'friend-3', name: 'TinkerTom', pet: 'Pebble', online: false }],
   friendRequests: [],
@@ -51,7 +52,14 @@ const key = 'project-fable-demo-v1'
 function readState(): GameState {
   try {
     const saved = localStorage.getItem(key)
-    return saved ? { ...initialState, ...JSON.parse(saved) } : initialState
+    if (!saved) return initialState
+    const parsed = JSON.parse(saved) as Partial<GameState>
+    return {
+      ...initialState,
+      ...parsed,
+      pets: (parsed.pets ?? []).map((pet) => ({ ...pet, variant: pet.variant ?? 'classic', pronouns: pet.pronouns ?? 'they/them' })),
+      tasks: (parsed.tasks ?? initialState.tasks).map((task) => ({ ...task, kind: task.kind ?? (task.id.startsWith('care') ? 'care' : task.id.startsWith('play') ? 'play' : 'collect') })),
+    }
   } catch { return initialState }
 }
 
@@ -76,8 +84,8 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     status: 'ready',
     error: '',
     sessionEmail: '',
-    onboard(username, petName, speciesId, palette) {
-      const pet = { id: crypto.randomUUID(), name: petName, speciesId, palette, hunger: 78, mood: 82, cleanliness: 74, equipped: {} }
+    onboard(username, petName, speciesId, palette, variant, pronouns) {
+      const pet = { id: crypto.randomUUID(), name: petName, speciesId, palette, variant, pronouns, hunger: 78, mood: 82, cleanliness: 74, equipped: {} }
       setState((s) => ({ ...s, onboarded: true, ageConfirmed: true, username, pets: [pet], activePetId: pet.id }))
     },
     care(kind) {

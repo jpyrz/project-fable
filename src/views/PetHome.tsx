@@ -15,7 +15,7 @@ export function PetHome() {
   ]
   return <div className={styles.page}>
     <section className={styles.hero}>
-      <div className={styles.petStage}><span className={styles.bubble}>“The town smells like sunberries today!”</span><PetAvatar pet={activePet} /><div className={styles.nameplate}><h1>{activePet.name}</h1><span>{kind.name} • Your active Fable</span></div></div>
+      <div className={styles.petStage}><span className={styles.bubble}>“The town smells like sunberries today!”</span><PetAvatar pet={activePet} /><div className={styles.nameplate}><h1>{activePet.name}</h1><span>{kind.name} • {activePet.variant === 'tufted' ? 'Tufted' : 'Classic'} • {activePet.pronouns}</span></div></div>
       <div className={styles.carePanel}>
         <header><div><span>COZY COTTAGE</span><h2>How is {activePet.name}?</h2></div><Heart fill="currentColor" /></header>
         <Stat label="Tummy" value={activePet.hunger} color="#f09b68" emoji="🍓" />

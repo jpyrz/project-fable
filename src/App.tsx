@@ -13,6 +13,7 @@ import { Inbox } from './views/Inbox'
 import { AuthScreen } from './views/AuthScreen'
 import { ResetPassword } from './views/ResetPassword'
 import { Bag } from './views/Bag'
+import { Friends } from './views/Friends'
 
 export default function App() {
   const { state, status, error } = useGame()
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/arcade" element={<Arcade />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/inbox" element={<Inbox />} />
+        <Route path="/friends" element={<Friends />} />
         <Route path="*" element={<Navigate to="/town" replace />} />
       </Route>
     </Routes>

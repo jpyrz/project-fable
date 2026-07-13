@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { Session } from '@supabase/supabase-js'
 import { items } from '../data'
 import { supabase } from '../lib/supabase'
-import type { GameState, SpeciesId } from '../types'
+import type { DailyTask, GameState, Pet, SpeciesId } from '../types'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 
 interface Snapshot {
@@ -21,6 +21,21 @@ interface Snapshot {
   friend_requests: Array<{ requester_id: string; name: string }>
 }
 
+interface CompanionPet {
+  id: string
+  name: string
+  species_id: SpeciesId
+  palette: number
+  variant: Pet['variant']
+  pronouns: Pet['pronouns']
+  hunger: number
+  mood: number
+  cleanliness: number
+  equipped: Record<string, string>
+}
+
+interface DailyAdventures { tasks: DailyTask[]; reset_at: string }
+
 const emptyState: GameState = {
   onboarded: false,
   username: '',
@@ -38,17 +53,20 @@ const emptyState: GameState = {
   messages: [],
   notifications: [],
   tasks: [],
+  dailyResetAt: '',
   dailyWishClaimed: false,
   friends: [],
   friendRequests: [],
 }
 
-function mapSnapshot(snapshot: Snapshot): GameState {
-  const pets = snapshot.pets.map((pet) => ({
+function mapSnapshot(snapshot: Snapshot, companions: CompanionPet[], adventures: DailyAdventures): GameState {
+  const pets = companions.map((pet) => ({
     id: pet.id,
     name: pet.name,
     speciesId: pet.species_id,
     palette: pet.palette,
+    variant: pet.variant,
+    pronouns: pet.pronouns,
     hunger: pet.hunger,
     mood: pet.mood,
     cleanliness: pet.cleanliness,
@@ -70,7 +88,8 @@ function mapSnapshot(snapshot: Snapshot): GameState {
     listings: snapshot.listings.map((listing) => ({ id: listing.id, itemId: listing.item_id, seller: listing.seller, price: listing.price, quantity: listing.quantity })),
     messages: snapshot.messages,
     notifications: snapshot.notifications,
-    tasks: snapshot.tasks,
+    tasks: adventures.tasks,
+    dailyResetAt: adventures.reset_at,
     dailyWishClaimed: snapshot.daily_wish_claimed,
     friends: snapshot.friends,
     friendRequests: (snapshot.friend_requests ?? []).map((request) => ({ requesterId: request.requester_id, name: request.name })),
@@ -88,9 +107,18 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
   const refreshTimer = useRef<number | undefined>(undefined)
 
   const refresh = useCallback(async () => {
-    const { data, error: snapshotError } = await client.rpc('get_game_snapshot')
-    if (snapshotError) { setError(snapshotError.message); setStatus('error'); throw snapshotError }
-    setState(mapSnapshot(data as unknown as Snapshot))
+    const [snapshotResult, companionResult, adventureResult] = await Promise.all([
+      client.rpc('get_game_snapshot'),
+      client.rpc('get_pet_companions'),
+      client.rpc('get_daily_adventures'),
+    ])
+    const requestError = snapshotResult.error ?? companionResult.error ?? adventureResult.error
+    if (requestError) { setError(requestError.message); setStatus('error'); throw requestError }
+    setState(mapSnapshot(
+      snapshotResult.data as unknown as Snapshot,
+      companionResult.data as unknown as CompanionPet[],
+      adventureResult.data as unknown as DailyAdventures,
+    ))
     setError('')
     setStatus('ready')
   }, [client])
@@ -137,8 +165,8 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
     status,
     error,
     sessionEmail: session?.user.email ?? '',
-    async onboard(username, petName, speciesId, palette) {
-      await rpc('complete_onboarding', { p_username: username, p_pet_name: petName, p_species: speciesId, p_palette: palette })
+    async onboard(username, petName, speciesId, palette, variant, pronouns) {
+      await rpc('complete_onboarding', { p_username: username, p_pet_name: petName, p_species: speciesId, p_palette: palette, p_variant: variant, p_pronouns: pronouns })
       await refresh()
     },
     async care(kind) {

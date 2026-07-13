@@ -25,10 +25,22 @@ export interface Pet {
   name: string
   speciesId: SpeciesId
   palette: number
+  variant: 'classic' | 'tufted'
+  pronouns: 'they/them' | 'she/her' | 'he/him'
   hunger: number
   mood: number
   cleanliness: number
   equipped: Partial<Record<'head' | 'neck' | 'held' | 'background', string>>
+}
+
+export interface DailyTask {
+  id: string
+  kind: 'care' | 'play' | 'collect'
+  label: string
+  progress: number
+  target: number
+  reward: number
+  claimed: boolean
 }
 
 export interface ChatMessage {
@@ -76,7 +88,8 @@ export interface GameState {
   listings: Listing[]
   messages: ChatMessage[]
   notifications: { id: string; text: string; read: boolean }[]
-  tasks: { id: string; label: string; progress: number; target: number; reward: number; claimed: boolean }[]
+  tasks: DailyTask[]
+  dailyResetAt: string
   dailyWishClaimed: boolean
   friends: Friend[]
   friendRequests: FriendRequest[]

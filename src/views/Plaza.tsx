@@ -1,15 +1,21 @@
 import { Flag, HeartHandshake, MoreHorizontal, Send, ShieldCheck, Users } from 'lucide-react'
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { channels } from '../data'
 import { useGame } from '../state/GameContext'
 import styles from './Plaza.module.scss'
 
 export function Plaza() {
   const { state, addMessage, reportMessage } = useGame()
+  const [searchParams] = useSearchParams()
   const [channel, setChannel] = useState('Lobby')
   const [text, setText] = useState('')
   const [reportNote, setReportNote] = useState('')
   const visible = useMemo(() => state.messages.filter((message) => message.channel === channel), [state.messages, channel])
+  useEffect(() => {
+    const requestedFriend = searchParams.get('dm')
+    if (requestedFriend && state.friends.some((friend) => friend.name === requestedFriend)) setChannel(`DM:${requestedFriend}`)
+  }, [searchParams, state.friends])
   const submit = (event: FormEvent) => { event.preventDefault(); const body = text; setText(''); void Promise.resolve(addMessage(channel, body)).catch((messageError) => { setReportNote(messageError instanceof Error ? messageError.message : 'Message could not be sent.'); window.setTimeout(() => setReportNote(''), 2200) }) }
   return <div className={styles.page}>
     {reportNote && <div className={styles.reportToast}>{reportNote}</div>}

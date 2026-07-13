@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { CareKind, GameState, SpeciesId } from '../types'
+import type { CareKind, GameState, Pet, SpeciesId } from '../types'
 
 export type MaybePromise<T> = T | Promise<T>
 export type BackendMode = 'demo' | 'supabase'
@@ -12,7 +12,7 @@ export interface GameContextValue {
   status: ConnectionStatus
   error: string
   sessionEmail: string
-  onboard: (username: string, petName: string, speciesId: SpeciesId, palette: number) => MaybePromise<void>
+  onboard: (username: string, petName: string, speciesId: SpeciesId, palette: number, variant: Pet['variant'], pronouns: Pet['pronouns']) => MaybePromise<void>
   care: (kind: CareKind) => MaybePromise<void>
   buyShopItem: (itemId: string) => MaybePromise<boolean>
   buyListing: (listingId: string) => MaybePromise<boolean>

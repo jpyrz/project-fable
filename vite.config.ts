@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['app-icon.png', 'bramblewick-town.png'],
+      includeAssets: ['app-icon.png', 'bramblewick-town.png', 'pets/*.png'],
       manifest: {
         name: 'Project Fable',
         short_name: 'Fable',
