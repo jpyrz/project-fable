@@ -104,3 +104,26 @@ export interface PublicKeeperProfile {
   wishlist: string[]
   friendCount: number
 }
+
+export type FoodTrait = 'cozy' | 'keen' | 'lucky'
+
+export interface ExpeditionState {
+  id: string
+  location: 'sunberry-glen'
+  durationMinutes: 10 | 20 | 30
+  petName: string
+  foodItemId: string | null
+  foodTrait: FoodTrait | null
+  startedAt: string
+  returnsAt: string
+  serverNow: string
+}
+
+export interface ExpeditionReward {
+  coins: number
+  reputation: number
+  items: Array<{ itemId: string; quantity: number }>
+  rare: boolean
+  title: string
+  detail: string
+}

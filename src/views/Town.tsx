@@ -1,4 +1,4 @@
-import { Gamepad2, Hammer, Heart, MessageCircle, ShoppingBasket, Sparkles } from 'lucide-react'
+import { Compass, Gamepad2, Hammer, Heart, MessageCircle, ShoppingBasket, Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGame } from '../state/GameContext'
@@ -11,6 +11,7 @@ const destinations = [
   { to: '/workshop', label: 'Tinker Workshop', icon: Hammer, className: 'workshop' },
   { to: '/plaza', label: 'Friendship Plaza', icon: MessageCircle, className: 'plaza' },
   { to: '/pet', label: 'Cozy Cottage', icon: Heart, className: 'cottage' },
+  { to: '/expeditions', label: 'Sunberry Expeditions', icon: Compass, className: 'forest' },
 ]
 
 export function Town() {

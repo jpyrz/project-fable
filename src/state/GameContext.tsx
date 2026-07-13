@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { items, recipes, species } from '../data'
 import { calculateGameReward } from '../lib/gameLogic'
-import type { GameState, PublicKeeperProfile, SpeciesId } from '../types'
+import { foodTraitFor } from '../lib/foodEffects'
+import type { ExpeditionState, GameState, PublicKeeperProfile, SpeciesId } from '../types'
 import { supabase } from '../lib/supabase'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 import { SupabaseGameProvider } from './SupabaseGameProvider'
@@ -48,6 +49,7 @@ const initialState: GameState = {
   friendRequests: [],
 }
 const key = 'project-fable-demo-v1'
+const expeditionKey = 'project-fable-demo-expedition-v1'
 
 function readState(): GameState {
   try {
@@ -69,6 +71,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
 function DemoGameProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GameState>(readState)
+  const [demoExpedition, setDemoExpedition] = useState<ExpeditionState | null>(() => {
+    try { return JSON.parse(localStorage.getItem(expeditionKey) ?? 'null') as ExpeditionState | null } catch { return null }
+  })
   useEffect(() => { localStorage.setItem(key, JSON.stringify(state)) }, [state])
   const activePet = state.pets.find((pet) => pet.id === state.activePetId)
 
@@ -182,6 +187,46 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
       if (state.dailyWishClaimed) return
       setState((s) => ({ ...s, dailyWishClaimed: true, coins: s.coins + 75, notifications: [{ id: crypto.randomUUID(), text: 'The well granted 75 Dewdrops!', read: false }, ...s.notifications] }))
     },
+    getExpedition() { return demoExpedition ? { ...demoExpedition, serverNow: new Date().toISOString() } : null },
+    startExpedition(durationMinutes, foodItemId) {
+      if (!activePet) throw new Error('Choose an active companion first.')
+      if (demoExpedition) throw new Error('Your companion is already exploring.')
+      if (foodItemId) {
+        const food = items.find((item) => item.id === foodItemId && item.category === 'food')
+        if (!food || (state.inventory[foodItemId] ?? 0) < 1) throw new Error('That trail snack is not in your bag.')
+        setState((s) => ({ ...s, inventory: { ...s.inventory, [foodItemId]: s.inventory[foodItemId] - 1 } }))
+      }
+      const startedAt = new Date()
+      const expedition: ExpeditionState = {
+        id: crypto.randomUUID(), location: 'sunberry-glen', durationMinutes,
+        petName: activePet.name, foodItemId, foodTrait: foodItemId ? foodTraitFor(foodItemId) : null,
+        startedAt: startedAt.toISOString(),
+        returnsAt: new Date(startedAt.getTime() + 8_000).toISOString(),
+        serverNow: startedAt.toISOString(),
+      }
+      localStorage.setItem(expeditionKey, JSON.stringify(expedition))
+      setDemoExpedition(expedition)
+      return expedition
+    },
+    claimExpedition(expeditionId, choice) {
+      if (!demoExpedition || demoExpedition.id !== expeditionId) throw new Error('Expedition not found.')
+      if (Date.now() < new Date(demoExpedition.returnsAt).getTime()) throw new Error('Your companion is still exploring.')
+      const trait = demoExpedition.foodTrait
+      const materialQuantity = choice === 'gather-grove' ? 2 + (trait === 'keen' ? 1 : 0) : 1 + (trait === 'keen' ? 1 : 0)
+      const rare = choice === 'follow-glow' && trait === 'lucky'
+      const rewardItems = [{ itemId: choice === 'gather-grove' ? 'item-14' : 'item-11', quantity: materialQuantity }, ...(rare ? [{ itemId: 'item-26', quantity: 1 }] : [])]
+      const coins = demoExpedition.durationMinutes === 10 ? 45 : demoExpedition.durationMinutes === 20 ? 80 : 115
+      const reputation = (demoExpedition.durationMinutes === 10 ? 12 : demoExpedition.durationMinutes === 20 ? 18 : 25) + (trait === 'cozy' ? 3 : 0)
+      setState((s) => {
+        const inventory = { ...s.inventory }
+        rewardItems.forEach((reward) => { inventory[reward.itemId] = (inventory[reward.itemId] ?? 0) + reward.quantity })
+        const reputationXp = s.reputationXp + reputation
+        return incrementTask({ ...s, coins: s.coins + coins, reputationXp, reputation: Math.floor(reputationXp / 100) + 1, inventory, collected: [...new Set([...s.collected, ...rewardItems.map((reward) => reward.itemId)])], notifications: [{ id: crypto.randomUUID(), text: `${activePet?.name ?? 'Your companion'} returned from Sunberry Glen with new finds!`, read: false }, ...s.notifications] }, 'collect', rewardItems.reduce((total, reward) => total + reward.quantity, 0))
+      })
+      localStorage.removeItem(expeditionKey)
+      setDemoExpedition(null)
+      return { coins, reputation, items: rewardItems, rare, title: rare ? 'A light among the clover!' : choice === 'gather-grove' ? 'A basket of glen treasures!' : 'The fireflies shared a secret!', detail: rare ? 'A Glass Firefly followed your companion home.' : 'Your companion returned with useful crafting finds.' }
+    },
     markNotificationsRead() { setState((s) => ({ ...s, notifications: s.notifications.map((note) => ({ ...note, read: true })) })) },
     async signIn() {},
     async signUp() { return 'confirmed' },
@@ -207,8 +252,8 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
       }
       return { username: isSelf ? state.username : friend!.name, reputation: isSelf ? state.reputation : 1, reputationXp: isSelf ? state.reputationXp : 0, activePet: previewPet, collected: isSelf ? state.collected : [], wishlist: isSelf ? state.wishlist : [], friendCount: isSelf ? state.friends.length : 1 } satisfies PublicKeeperProfile
     },
-    resetDemo() { localStorage.removeItem(key); setState(initialState) },
-  }), [state, activePet])
+    resetDemo() { localStorage.removeItem(key); localStorage.removeItem(expeditionKey); setDemoExpedition(null); setState(initialState) },
+  }), [state, activePet, demoExpedition])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>
 }
