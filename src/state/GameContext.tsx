@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { items, recipes, species } from '../data'
 import { calculateGameReward } from '../lib/gameLogic'
 import { foodTraitFor } from '../lib/foodEffects'
-import type { ExpeditionState, GameState, PublicKeeperProfile, SpeciesId } from '../types'
+import type { ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, PublicKeeperProfile, SpeciesId } from '../types'
 import { supabase } from '../lib/supabase'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 import { SupabaseGameProvider } from './SupabaseGameProvider'
@@ -50,6 +50,22 @@ const initialState: GameState = {
 }
 const key = 'project-fable-demo-v1'
 const expeditionKey = 'project-fable-demo-expedition-v1'
+const expeditionHistoryKey = 'project-fable-demo-expedition-history-v1'
+const expeditionWeeklyClaimKey = 'project-fable-demo-expedition-weekly-claim-v1'
+
+function currentExpeditionWeek() {
+  const now = new Date()
+  const day = now.getUTCDay() || 7
+  now.setUTCDate(now.getUTCDate() - day + 1)
+  now.setUTCHours(0, 0, 0, 0)
+  return now.toISOString()
+}
+
+const expeditionCatalog: Record<ExpeditionLocation, { material: [string, string]; rare: string; set: string[]; badge: { id: string; label: string; icon: string; description: string } }> = {
+  'sunberry-glen': { material: ['item-109', 'item-110'], rare: 'item-111', set: ['item-109', 'item-110', 'item-111', 'item-112'], badge: { id: 'glen-guide', label: 'Glen Guide', icon: '🌼', description: 'Completed the Sunberry Glen collection.' } },
+  'mistbell-marsh': { material: ['item-113', 'item-114'], rare: 'item-115', set: ['item-113', 'item-114', 'item-115', 'item-116'], badge: { id: 'mist-walker', label: 'Mist Walker', icon: '🪷', description: 'Completed the Mistbell Marsh collection.' } },
+  'moonroot-caverns': { material: ['item-117', 'item-118'], rare: 'item-119', set: ['item-117', 'item-118', 'item-119', 'item-120'], badge: { id: 'moonroot-seeker', label: 'Moonroot Seeker', icon: '🌟', description: 'Completed the Moonroot Caverns collection.' } },
+}
 
 function readState(): GameState {
   try {
@@ -72,7 +88,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
 function DemoGameProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GameState>(readState)
   const [demoExpedition, setDemoExpedition] = useState<ExpeditionState | null>(() => {
-    try { return JSON.parse(localStorage.getItem(expeditionKey) ?? 'null') as ExpeditionState | null } catch { return null }
+    try {
+      const saved = JSON.parse(localStorage.getItem(expeditionKey) ?? 'null') as ExpeditionState | null
+      return saved ? { ...saved, sceneId: saved.sceneId ?? 0, speciesId: saved.speciesId ?? 'mossling', affinity: saved.affinity ?? true } : null
+    } catch { return null }
   })
   useEffect(() => { localStorage.setItem(key, JSON.stringify(state)) }, [state])
   const activePet = state.pets.find((pet) => pet.id === state.activePetId)
@@ -144,7 +163,7 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     },
     craft(recipeId) {
       const recipe = recipes.find((entry) => entry.id === recipeId)
-      if (!recipe || recipe.needs.some((need) => (state.inventory[need.id] ?? 0) < need.count)) return false
+      if (!recipe || state.reputation < recipe.level || recipe.needs.some((need) => (state.inventory[need.id] ?? 0) < need.count)) return false
       setState((s) => {
         const inventory = { ...s.inventory }
         recipe.needs.forEach((need) => { inventory[need.id] -= need.count })
@@ -188,9 +207,11 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
       setState((s) => ({ ...s, dailyWishClaimed: true, coins: s.coins + 75, notifications: [{ id: crypto.randomUUID(), text: 'The well granted 75 Dewdrops!', read: false }, ...s.notifications] }))
     },
     getExpedition() { return demoExpedition ? { ...demoExpedition, serverNow: new Date().toISOString() } : null },
-    startExpedition(durationMinutes, foodItemId) {
+    startExpedition(location, durationMinutes, foodItemId) {
       if (!activePet) throw new Error('Choose an active companion first.')
       if (demoExpedition) throw new Error('Your companion is already exploring.')
+      const requiredLevel = location === 'sunberry-glen' ? 1 : location === 'mistbell-marsh' ? 2 : 3
+      if (state.reputation < requiredLevel) throw new Error(`Reputation Level ${requiredLevel} is required.`)
       if (foodItemId) {
         const food = items.find((item) => item.id === foodItemId && item.category === 'food')
         if (!food || (state.inventory[foodItemId] ?? 0) < 1) throw new Error('That trail snack is not in your bag.')
@@ -198,11 +219,13 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
       }
       const startedAt = new Date()
       const expedition: ExpeditionState = {
-        id: crypto.randomUUID(), location: 'sunberry-glen', durationMinutes,
+        id: crypto.randomUUID(), location, durationMinutes,
         petName: activePet.name, foodItemId, foodTrait: foodItemId ? foodTraitFor(foodItemId) : null,
         startedAt: startedAt.toISOString(),
         returnsAt: new Date(startedAt.getTime() + 8_000).toISOString(),
         serverNow: startedAt.toISOString(),
+        sceneId: Math.floor(Math.random() * 3), speciesId: activePet.speciesId,
+        affinity: (activePet.speciesId === 'mossling' && location === 'sunberry-glen') || (activePet.speciesId === 'cloudkip' && location === 'mistbell-marsh') || (activePet.speciesId === 'pebblit' && location === 'moonroot-caverns'),
       }
       localStorage.setItem(expeditionKey, JSON.stringify(expedition))
       setDemoExpedition(expedition)
@@ -212,20 +235,45 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
       if (!demoExpedition || demoExpedition.id !== expeditionId) throw new Error('Expedition not found.')
       if (Date.now() < new Date(demoExpedition.returnsAt).getTime()) throw new Error('Your companion is still exploring.')
       const trait = demoExpedition.foodTrait
-      const materialQuantity = choice === 'gather-grove' ? 2 + (trait === 'keen' ? 1 : 0) : 1 + (trait === 'keen' ? 1 : 0)
-      const rare = choice === 'follow-glow' && trait === 'lucky'
-      const rewardItems = [{ itemId: choice === 'gather-grove' ? 'item-14' : 'item-11', quantity: materialQuantity }, ...(rare ? [{ itemId: 'item-26', quantity: 1 }] : [])]
+      const catalog = expeditionCatalog[demoExpedition.location]
+      const materialQuantity = choice === 'path-b' ? 2 + (trait === 'keen' ? 1 : 0) : 1 + (trait === 'keen' ? 1 : 0)
+      const rare = choice === 'path-a' && trait === 'lucky'
+      const rewardItems = [{ itemId: catalog.material[demoExpedition.sceneId % 2], quantity: materialQuantity }, ...(rare ? [{ itemId: catalog.rare, quantity: 1 }] : [])]
       const coins = demoExpedition.durationMinutes === 10 ? 45 : demoExpedition.durationMinutes === 20 ? 80 : 115
       const reputation = (demoExpedition.durationMinutes === 10 ? 12 : demoExpedition.durationMinutes === 20 ? 18 : 25) + (trait === 'cozy' ? 3 : 0)
+      const claimedReward: ExpeditionReward = { coins, reputation, items: rewardItems, rare, title: rare ? 'A truly rare discovery!' : choice === 'path-b' ? 'A basket of expedition treasures!' : 'The curious path shared a secret!', detail: rare ? 'A rare region treasure followed your companion home.' : 'Your companion returned with useful crafting finds.', badge: null }
       setState((s) => {
         const inventory = { ...s.inventory }
         rewardItems.forEach((reward) => { inventory[reward.itemId] = (inventory[reward.itemId] ?? 0) + reward.quantity })
         const reputationXp = s.reputationXp + reputation
-        return incrementTask({ ...s, coins: s.coins + coins, reputationXp, reputation: Math.floor(reputationXp / 100) + 1, inventory, collected: [...new Set([...s.collected, ...rewardItems.map((reward) => reward.itemId)])], notifications: [{ id: crypto.randomUUID(), text: `${activePet?.name ?? 'Your companion'} returned from Sunberry Glen with new finds!`, read: false }, ...s.notifications] }, 'collect', rewardItems.reduce((total, reward) => total + reward.quantity, 0))
+        return incrementTask({ ...s, coins: s.coins + coins, reputationXp, reputation: Math.floor(reputationXp / 100) + 1, inventory, collected: [...new Set([...s.collected, ...rewardItems.map((reward) => reward.itemId)])], notifications: [{ id: crypto.randomUUID(), text: `${activePet?.name ?? 'Your companion'} returned from an expedition with new finds!`, read: false }, ...s.notifications] }, 'collect', rewardItems.reduce((total, reward) => total + reward.quantity, 0))
       })
+      const history = JSON.parse(localStorage.getItem(expeditionHistoryKey) ?? '[]') as ExpeditionJournal['history']
+      history.unshift({ id: demoExpedition.id, location: demoExpedition.location, petName: demoExpedition.petName, durationMinutes: demoExpedition.durationMinutes, choice, result: claimedReward, claimedAt: new Date().toISOString() })
+      localStorage.setItem(expeditionHistoryKey, JSON.stringify(history.slice(0, 12)))
       localStorage.removeItem(expeditionKey)
       setDemoExpedition(null)
-      return { coins, reputation, items: rewardItems, rare, title: rare ? 'A light among the clover!' : choice === 'gather-grove' ? 'A basket of glen treasures!' : 'The fireflies shared a secret!', detail: rare ? 'A Glass Firefly followed your companion home.' : 'Your companion returned with useful crafting finds.' }
+      return claimedReward
+    },
+    getExpeditionJournal() {
+      const history = JSON.parse(localStorage.getItem(expeditionHistoryKey) ?? '[]') as ExpeditionJournal['history']
+      const badges = Object.values(expeditionCatalog).filter((location) => location.set.every((id) => state.collected.includes(id))).map((location) => ({ ...location.badge, earnedAt: new Date().toISOString() }))
+      const weekStart = currentExpeditionWeek()
+      const weeklyHistory = history.filter((entry) => entry.claimedAt >= weekStart)
+      const unique = new Set(weeklyHistory.flatMap((entry) => entry.result.items.map((item) => item.itemId))).size
+      const resetAt = new Date(new Date(weekStart).getTime() + 7 * 86400000).toISOString()
+      return { collected: state.collected.filter((id) => Number(id.replace(/\D/g, '')) >= 109), badges, history, weekly: { completed: weeklyHistory.length, uniqueDiscoveries: unique, targetCompleted: 4, targetDiscoveries: 3, claimed: localStorage.getItem(expeditionWeeklyClaimKey) === weekStart, resetAt, rewardCoins: 200, rewardReputation: 30 } }
+    },
+    claimWeeklyExpeditionGoal() {
+      const history = JSON.parse(localStorage.getItem(expeditionHistoryKey) ?? '[]') as ExpeditionJournal['history']
+      const weekStart = currentExpeditionWeek()
+      if (localStorage.getItem(expeditionWeeklyClaimKey) === weekStart) throw new Error('This week’s expedition reward has already been claimed.')
+      const weeklyHistory = history.filter((entry) => entry.claimedAt >= weekStart)
+      const unique = new Set(weeklyHistory.flatMap((entry) => entry.result.items.map((item) => item.itemId))).size
+      if (weeklyHistory.length < 4 || unique < 3) throw new Error('The weekly expedition goal is not complete yet.')
+      setState((s) => { const reputationXp = s.reputationXp + 30; return { ...s, coins: s.coins + 200, reputationXp, reputation: Math.floor(reputationXp / 100) + 1 } })
+      localStorage.setItem(expeditionWeeklyClaimKey, weekStart)
+      return { coins: 200, reputation: 30 }
     },
     markNotificationsRead() { setState((s) => ({ ...s, notifications: s.notifications.map((note) => ({ ...note, read: true })) })) },
     async signIn() {},
@@ -250,9 +298,9 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
         cleanliness: 78,
         equipped: {},
       }
-      return { username: isSelf ? state.username : friend!.name, reputation: isSelf ? state.reputation : 1, reputationXp: isSelf ? state.reputationXp : 0, activePet: previewPet, collected: isSelf ? state.collected : [], wishlist: isSelf ? state.wishlist : [], friendCount: isSelf ? state.friends.length : 1 } satisfies PublicKeeperProfile
+      return { username: isSelf ? state.username : friend!.name, reputation: isSelf ? state.reputation : 1, reputationXp: isSelf ? state.reputationXp : 0, activePet: previewPet, collected: isSelf ? state.collected : [], wishlist: isSelf ? state.wishlist : [], friendCount: isSelf ? state.friends.length : 1, badges: [] } satisfies PublicKeeperProfile
     },
-    resetDemo() { localStorage.removeItem(key); localStorage.removeItem(expeditionKey); setDemoExpedition(null); setState(initialState) },
+    resetDemo() { localStorage.removeItem(key); localStorage.removeItem(expeditionKey); localStorage.removeItem(expeditionHistoryKey); localStorage.removeItem(expeditionWeeklyClaimKey); setDemoExpedition(null); setState(initialState) },
   }), [state, activePet, demoExpedition])
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>

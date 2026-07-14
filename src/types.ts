@@ -103,13 +103,23 @@ export interface PublicKeeperProfile {
   collected: string[]
   wishlist: string[]
   friendCount: number
+  badges: ExpeditionBadge[]
 }
 
 export type FoodTrait = 'cozy' | 'keen' | 'lucky'
+export type ExpeditionLocation = 'sunberry-glen' | 'mistbell-marsh' | 'moonroot-caverns'
+
+export interface ExpeditionBadge {
+  id: string
+  label: string
+  icon: string
+  description: string
+  earnedAt: string
+}
 
 export interface ExpeditionState {
   id: string
-  location: 'sunberry-glen'
+  location: ExpeditionLocation
   durationMinutes: 10 | 20 | 30
   petName: string
   foodItemId: string | null
@@ -117,6 +127,9 @@ export interface ExpeditionState {
   startedAt: string
   returnsAt: string
   serverNow: string
+  sceneId: number
+  speciesId: SpeciesId
+  affinity: boolean
 }
 
 export interface ExpeditionReward {
@@ -126,4 +139,29 @@ export interface ExpeditionReward {
   rare: boolean
   title: string
   detail: string
+  badge?: ExpeditionBadge | null
+}
+
+export interface ExpeditionJournal {
+  collected: string[]
+  badges: ExpeditionBadge[]
+  history: Array<{
+    id: string
+    location: ExpeditionLocation
+    petName: string
+    durationMinutes: number
+    choice: string
+    result: ExpeditionReward
+    claimedAt: string
+  }>
+  weekly: {
+    completed: number
+    uniqueDiscoveries: number
+    targetCompleted: number
+    targetDiscoveries: number
+    claimed: boolean
+    resetAt: string
+    rewardCoins: number
+    rewardReputation: number
+  }
 }

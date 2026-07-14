@@ -34,6 +34,7 @@ export function KeeperProfile() {
       {pet && <div className={styles.pet}><PetAvatar pet={pet} /><div><span>ACTIVE COMPANION</span><h2>{pet.name}</h2><p>{getSpecies(pet.speciesId).name} · {pet.variant === 'tufted' ? 'Tufted' : 'Classic'}</p></div></div>}
     </section>
     <section className={styles.stats}><article><Award /><b>Reputation Level {profile.reputation}</b><span>{levelProgress}/100 to Level {profile.reputation + 1}</span></article><article><BookOpen /><b>{profile.collected.length} highlights</b><span>Favorite collection finds</span></article><article><Users /><b>{profile.friendCount} friends</b><span>Keepers in their circle</span></article></section>
+    <section className={styles.badges}><header><div><span>EXPEDITION BADGES</span><h2>Field achievements</h2></div><Award /></header>{profile.badges.length ? <div>{profile.badges.map((badge) => <article key={badge.id}><b>{badge.icon}</b><strong>{badge.label}</strong><small>{badge.description}</small></article>)}</div> : <p>No expedition badges earned yet.</p>}</section>
     <Showcase title="Collection highlights" eyebrow="SHOWCASE" ids={profile.collected} icon={<Award />} empty="No collection highlights yet." />
     <Showcase title="Dreaming of these" eyebrow="WISHLIST" ids={profile.wishlist} icon={<Heart />} empty="Their wishlist is empty." />
     {profile.username.toLowerCase() === state.username.toLowerCase() && <Link className={styles.edit} to="/profile">Edit your profile and account</Link>}

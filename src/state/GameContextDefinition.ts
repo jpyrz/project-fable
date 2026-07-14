@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { CareKind, ExpeditionReward, ExpeditionState, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
+import type { CareKind, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
 
 export type MaybePromise<T> = T | Promise<T>
 export type BackendMode = 'demo' | 'supabase'
@@ -31,8 +31,10 @@ export interface GameContextValue {
   claimTask: (taskId: string) => MaybePromise<void>
   makeWish: () => MaybePromise<void>
   getExpedition: () => MaybePromise<ExpeditionState | null>
-  startExpedition: (durationMinutes: 10 | 20 | 30, foodItemId: string | null) => MaybePromise<ExpeditionState>
-  claimExpedition: (expeditionId: string, choice: 'follow-glow' | 'gather-grove') => MaybePromise<ExpeditionReward>
+  startExpedition: (location: ExpeditionLocation, durationMinutes: 10 | 20 | 30, foodItemId: string | null) => MaybePromise<ExpeditionState>
+  claimExpedition: (expeditionId: string, choice: 'path-a' | 'path-b') => MaybePromise<ExpeditionReward>
+  getExpeditionJournal: () => MaybePromise<ExpeditionJournal>
+  claimWeeklyExpeditionGoal: () => MaybePromise<{ coins: number; reputation: number }>
   markNotificationsRead: () => MaybePromise<void>
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, username: string, inviteCode: string) => Promise<'confirmed' | 'pending'>

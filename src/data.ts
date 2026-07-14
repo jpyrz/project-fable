@@ -21,6 +21,20 @@ const itemSeeds = [
 ] as const
 
 const suffixes = ['', ' of Dawn', ' of Clover', ' of Starlight']
+const expeditionItemOverrides: Record<number, Partial<Item>> = {
+  109: { name: 'Sunberry Seedpod', category: 'material', rarity: 'Uncommon', icon: '🍓', description: 'A warm little seedpod gathered in Sunberry Glen.' },
+  110: { name: 'Lantern Clover', category: 'material', rarity: 'Uncommon', icon: '🍀', description: 'Clover that glows softly beneath the glen fireflies.' },
+  111: { name: 'Willow Whisper', category: 'collectible', rarity: 'Rare', icon: '🍃', description: 'A rare leaf that seems to remember an old woodland song.' },
+  112: { name: 'Glen Garland', category: 'accessory', rarity: 'Rare', icon: '🌼', description: 'A cheerful garland crafted from Sunberry Glen discoveries.' },
+  113: { name: 'Mistbell Reed', category: 'material', rarity: 'Uncommon', icon: '🎋', description: 'A musical marsh reed with a silvery ring.' },
+  114: { name: 'Dewglass Pearl', category: 'material', rarity: 'Uncommon', icon: '🫧', description: 'A pearly bead of mist hardened by moonlight.' },
+  115: { name: 'Fogfin Charm', category: 'collectible', rarity: 'Rare', icon: '🐟', description: 'A tiny charm left behind by a shy marsh swimmer.' },
+  116: { name: 'Marshlight Brooch', category: 'accessory', rarity: 'Rare', icon: '🪷', description: 'A luminous brooch crafted from Mistbell Marsh finds.' },
+  117: { name: 'Moonroot Crystal', category: 'material', rarity: 'Uncommon', icon: '🔮', description: 'A violet crystal grown around an ancient moonroot.' },
+  118: { name: 'Echo Geode', category: 'material', rarity: 'Uncommon', icon: '🪨', description: 'A geode that quietly repeats happy sounds.' },
+  119: { name: 'Cave Star', category: 'collectible', rarity: 'Rare', icon: '🌟', description: 'A rare fallen star found in the deepest cavern pocket.' },
+  120: { name: 'Moonroot Sky', category: 'background', rarity: 'Mythic', icon: '🌌', description: 'A dreamy cavern sky crafted from Moonroot discoveries.' },
+}
 export const items: Item[] = Array.from({ length: 120 }, (_, index) => {
   const seed = itemSeeds[index % itemSeeds.length]
   const tier = Math.floor(index / itemSeeds.length)
@@ -34,15 +48,19 @@ export const items: Item[] = Array.from({ length: 120 }, (_, index) => {
     price: 24 + (index % 15) * 7 + tier * 55,
     icon: seed[2],
     description: category === 'material' ? 'A useful ingredient gathered around Bramblewick.' : `A ${rarity.toLowerCase()} little treasure from Bramblewick.`,
+    ...expeditionItemOverrides[index + 1],
   }
 })
 
 export const featuredShopItems = items.slice(0, 12)
 
 export const recipes = [
-  { id: 'sun-hat', output: 'item-16', needs: [{ id: 'item-10', count: 2 }, { id: 'item-14', count: 1 }] },
-  { id: 'moon-crown', output: 'item-17', needs: [{ id: 'item-11', count: 2 }, { id: 'item-13', count: 1 }] },
-  { id: 'star-wand', output: 'item-21', needs: [{ id: 'item-10', count: 1 }, { id: 'item-13', count: 2 }] },
+  { id: 'sun-hat', output: 'item-16', level: 1, needs: [{ id: 'item-10', count: 2 }, { id: 'item-14', count: 1 }] },
+  { id: 'moon-crown', output: 'item-17', level: 2, needs: [{ id: 'item-11', count: 2 }, { id: 'item-13', count: 1 }] },
+  { id: 'star-wand', output: 'item-21', level: 2, needs: [{ id: 'item-10', count: 1 }, { id: 'item-13', count: 2 }] },
+  { id: 'glen-garland', output: 'item-112', level: 1, needs: [{ id: 'item-109', count: 2 }, { id: 'item-110', count: 1 }] },
+  { id: 'marshlight-brooch', output: 'item-116', level: 2, needs: [{ id: 'item-113', count: 2 }, { id: 'item-114', count: 1 }] },
+  { id: 'moonroot-sky', output: 'item-120', level: 3, needs: [{ id: 'item-117', count: 2 }, { id: 'item-118', count: 1 }] },
 ]
 
 export const channels = ['Lobby', 'Trading', 'Help', 'Off-topic']

@@ -16,6 +16,7 @@ import { Bag } from './views/Bag'
 import { Friends } from './views/Friends'
 import { KeeperProfile } from './views/KeeperProfile'
 import { Expeditions } from './views/Expeditions'
+import { ExpeditionJournal } from './views/ExpeditionJournal'
 
 export default function App() {
   const { state, status, error } = useGame()
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/friends" element={<Friends />} />
         <Route path="/keeper/:username" element={<KeeperProfile />} />
         <Route path="/expeditions" element={<Expeditions />} />
+        <Route path="/expedition-journal" element={<ExpeditionJournal />} />
         <Route path="*" element={<Navigate to="/town" replace />} />
       </Route>
     </Routes>

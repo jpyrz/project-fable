@@ -3,7 +3,7 @@
 .banner::after { content:'✦  ·  ✦  ·  ✦'; position:absolute; top:15px; right:20px; color:#ffe28e; opacity:.45; font-size:2rem; }
 .identity { display:flex; gap:14px; align-items:center; padding:24px; }
 .avatar { display:grid; width:72px; aspect-ratio:1; place-items:center; color:var(--plum); background:#ffe08a; border:4px solid white; border-radius:44%; font:900 2rem var(--display); }
-.identity span,.pet span,.showcase header span { color:#ffe6a1; font-size:.62rem; font-weight:950; letter-spacing:.14em; }
+.identity span,.pet span,.showcase header span,.badges header span { color:#ffe6a1; font-size:.62rem; font-weight:950; letter-spacing:.14em; }
 .identity h1 { margin:2px 0; font:800 1.8rem var(--display); }
 .identity p { margin:0; font-size:.78rem; opacity:.75; }
 .pet { display:flex; align-items:center; padding:12px 24px; background:rgba(255,255,255,.12); }
@@ -24,6 +24,7 @@
 .showcase article b { font-size:2rem; }
 .showcase article span { color:var(--plum); font-size:.67rem; font-weight:900; }
 .showcase > p { color:var(--muted); }
+.badges { max-width:940px; margin:18px auto; padding:17px; background:#fff4d5; border:2px solid #e4c77f; border-radius:20px; }.badges header { display:flex; justify-content:space-between; color:var(--coral); }.badges header span { color:var(--coral-dark); }.badges h2 { margin:2px 0 12px; color:var(--plum); font:800 1.35rem var(--display); }.badges > div { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }.badges article { display:grid; justify-items:center; padding:11px 5px; text-align:center; background:white; border-radius:13px; }.badges article b { font-size:2rem; }.badges article strong { color:var(--plum); font-size:.7rem; }.badges article small { color:var(--muted); font-size:.55rem; }.badges > p { color:var(--muted); font-size:.72rem; }
 .edit,.state a { display:block; width:max-content; margin:24px auto; padding:11px 15px; color:white; background:var(--teal-dark); border-radius:12px; font-weight:900; }
 .state { display:grid; min-height:60dvh; place-content:center; justify-items:center; padding:30px; color:var(--muted); text-align:center; }
 .state > b { font-size:3rem; }

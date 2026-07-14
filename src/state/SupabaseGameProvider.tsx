@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import type { Session } from '@supabase/supabase-js'
 import { items } from '../data'
 import { supabase } from '../lib/supabase'
-import type { DailyTask, ExpeditionReward, ExpeditionState, FoodTrait, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
+import type { DailyTask, ExpeditionBadge, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, FoodTrait, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 
 interface Snapshot {
@@ -44,11 +44,12 @@ interface PublicKeeperResult {
   collected: string[]
   wishlist: string[]
   friend_count: number
+  badges: Array<{ id: string; label: string; icon: string; description: string; earned_at: string }>
 }
 
 interface ExpeditionResult {
   id: string
-  location: 'sunberry-glen'
+  location: ExpeditionLocation
   duration_minutes: 10 | 20 | 30
   pet_name: string
   food_item_id: string | null
@@ -56,6 +57,9 @@ interface ExpeditionResult {
   started_at: string
   returns_at: string
   server_now: string
+  scene_id: number
+  species_id: SpeciesId
+  affinity: boolean
 }
 
 interface ExpeditionRewardResult {
@@ -65,6 +69,22 @@ interface ExpeditionRewardResult {
   rare: boolean
   title: string
   detail: string
+  badge?: { id: string; label: string; icon: string; description: string; earned_at: string } | null
+}
+
+interface ExpeditionJournalResult {
+  collected: string[]
+  badges: Array<{ id: string; label: string; icon: string; description: string; earned_at: string }>
+  history: Array<{ id: string; location: ExpeditionLocation; pet_name: string; duration_minutes: number; choice: string; result: ExpeditionRewardResult; claimed_at: string }>
+  weekly: { completed: number; unique_discoveries: number; target_completed: number; target_discoveries: number; claimed: boolean; reset_at: string; reward_coins: number; reward_reputation: number }
+}
+
+function mapBadge(badge: { id: string; label: string; icon: string; description: string; earned_at: string }): ExpeditionBadge {
+  return { id: badge.id, label: badge.label, icon: badge.icon, description: badge.description, earnedAt: badge.earned_at }
+}
+
+function mapExpeditionReward(result: ExpeditionRewardResult): ExpeditionReward {
+  return { coins: result.coins, reputation: result.reputation, items: result.items.map((item) => ({ itemId: item.item_id, quantity: item.quantity })), rare: result.rare, title: result.title, detail: result.detail, badge: result.badge ? mapBadge(result.badge) : null }
 }
 
 function mapExpedition(result: ExpeditionResult): ExpeditionState {
@@ -78,6 +98,9 @@ function mapExpedition(result: ExpeditionResult): ExpeditionState {
     startedAt: result.started_at,
     returnsAt: result.returns_at,
     serverNow: result.server_now,
+    sceneId: result.scene_id,
+    speciesId: result.species_id,
+    affinity: result.affinity,
   }
 }
 
@@ -269,17 +292,27 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
       const result = await rpc('get_current_expedition') as ExpeditionResult | null
       return result ? mapExpedition(result) : null
     },
-    async startExpedition(durationMinutes, foodItemId) {
+    async startExpedition(location, durationMinutes, foodItemId) {
       if (!state.activePetId) throw new Error('Choose an active companion first.')
-      const result = await rpc('start_expedition', { p_pet: state.activePetId, p_duration: durationMinutes, p_food: foodItemId }) as ExpeditionResult
+      const result = await rpc('start_expedition', { p_pet: state.activePetId, p_location: location, p_duration: durationMinutes, p_food: foodItemId }) as ExpeditionResult
       await refresh()
       return mapExpedition(result)
     },
     async claimExpedition(expeditionId, choice) {
       const result = await rpc('claim_expedition', { p_expedition: expeditionId, p_choice: choice, p_idempotency_key: crypto.randomUUID() }) as ExpeditionRewardResult
       await refresh()
-      return { coins: result.coins, reputation: result.reputation, items: result.items.map((item) => ({ itemId: item.item_id, quantity: item.quantity })), rare: result.rare, title: result.title, detail: result.detail } satisfies ExpeditionReward
+      return mapExpeditionReward(result)
     },
+    async getExpeditionJournal() {
+      const result = await rpc('get_expedition_journal') as ExpeditionJournalResult
+      return {
+        collected: result.collected,
+        badges: result.badges.map(mapBadge),
+        history: result.history.map((entry) => ({ id: entry.id, location: entry.location, petName: entry.pet_name, durationMinutes: entry.duration_minutes, choice: entry.choice, result: mapExpeditionReward(entry.result), claimedAt: entry.claimed_at })),
+        weekly: { completed: result.weekly.completed, uniqueDiscoveries: result.weekly.unique_discoveries, targetCompleted: result.weekly.target_completed, targetDiscoveries: result.weekly.target_discoveries, claimed: result.weekly.claimed, resetAt: result.weekly.reset_at, rewardCoins: result.weekly.reward_coins, rewardReputation: result.weekly.reward_reputation },
+      } satisfies ExpeditionJournal
+    },
+    async claimWeeklyExpeditionGoal() { const result = await rpc('claim_weekly_expedition_goal', { p_idempotency_key: crypto.randomUUID() }) as { coins: number; reputation: number }; await refresh(); return result },
     async markNotificationsRead() { await rpc('mark_notifications_read'); await refresh() },
     async signIn(email, password) {
       const { error: authError } = await client.auth.signInWithPassword({ email, password })
@@ -323,6 +356,7 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
         collected: result.collected,
         wishlist: result.wishlist,
         friendCount: result.friend_count,
+        badges: (result.badges ?? []).map(mapBadge),
       } satisfies PublicKeeperProfile
     },
     resetDemo() {},

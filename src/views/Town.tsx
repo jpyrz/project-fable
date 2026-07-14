@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useGame } from '../state/GameContext'
 import { useCelebration } from '../components/Celebration'
+import type { ExpeditionState } from '../types'
 import styles from './Town.module.scss'
 
 const destinations = [
@@ -15,10 +16,12 @@ const destinations = [
 ]
 
 export function Town() {
-  const { state, makeWish, claimTask } = useGame()
+  const { state, makeWish, claimTask, getExpedition } = useGame()
   const celebrate = useCelebration()
   const [now, setNow] = useState(Date.now())
+  const [expedition, setExpedition] = useState<ExpeditionState | null>(null)
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 60_000); return () => window.clearInterval(timer) }, [])
+  useEffect(() => { void Promise.resolve(getExpedition()).then(setExpedition).catch(() => undefined) }, [getExpedition])
   const resetMs = Math.max(0, new Date(state.dailyResetAt).getTime() - now)
   const resetLabel = state.dailyResetAt ? `${Math.floor(resetMs / 3_600_000)}h ${Math.floor((resetMs % 3_600_000) / 60_000)}m` : 'at midnight UTC'
   const wish = async () => {
@@ -35,7 +38,7 @@ export function Town() {
     <section className={styles.map}>
       <img src="/bramblewick-town.png" alt="The illustrated village of Bramblewick" />
       <div className={styles.mapTitle}><span>Welcome to</span><b>Bramblewick</b></div>
-      {destinations.map(({ to, label, icon: Icon, className }) => <Link key={to} to={to} aria-label={label} className={`${styles.pin} ${styles[className]}`}><Icon /><span>{label}</span></Link>)}
+      {destinations.map(({ to, label, icon: Icon, className }) => { const expeditionLabel = to === '/expeditions' && expedition ? now >= new Date(expedition.returnsAt).getTime() ? `${expedition.petName} is ready!` : `${expedition.petName} is exploring` : label; return <Link key={to} to={to} aria-label={expeditionLabel} className={`${styles.pin} ${styles[className]} ${to === '/expeditions' && expedition && now >= new Date(expedition.returnsAt).getTime() ? styles.expeditionReady : ''}`}><Icon /><span>{expeditionLabel}</span></Link> })}
       <button aria-label={state.dailyWishClaimed ? 'View Wishing Well reset time' : 'Make a wish at the Wishing Well'} className={`${styles.pin} ${styles.well}`} onClick={() => void wish()}><Sparkles /><span>{state.dailyWishClaimed ? 'Wish made!' : 'Wishing Well'}</span></button>
     </section>
     <section className={styles.dailies}><header><div><span>TODAY IN BRAMBLEWICK</span><h2>Little daily adventures</h2><small>New adventures in {resetLabel}</small></div><b>{state.tasks.filter((t) => t.claimed).length}/{state.tasks.length}</b></header>
