@@ -22,7 +22,7 @@ The launch-species kit establishes the temporary production contract for modular
 | Mossling | Head | `head-sunny-day-hat.png` | Own item 16 | `x .178`, `y -.097`, `scale .62` |
 | Lumipup | Base | `base.png` | Always | Full canvas |
 | Lumipup | Marking | `marking-comet-dust.png` | Starter | Full canvas |
-| Lumipup | Hair | `hair-nova-swoop.png` | Starter | `x .14`, `y .02`, `scale .7` |
+| Lumipup | Hair | `hair-nova-swoop.png` | Starter | `x .035`, `y -.055`, `scale .7` |
 | Lumipup | Outfit | `outfit-sunberry-tunic.png` | Own item 121 | `x .19`, `y .27`, `scale .6` |
 | Lumipup | Head | shared Sunny Day Hat | Own item 16 | `x .25`, `y -.05`, `scale .45` |
 | Cloudkip | Base | `base.png` | Always | Full canvas |
