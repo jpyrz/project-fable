@@ -44,6 +44,10 @@ export function customizationAsset(id: string) {
   return customizationAssets.find((asset) => asset.id === id)
 }
 
+export function customizationAssetForItem(itemId: string, speciesId: SpeciesId) {
+  return customizationAssets.find((asset) => asset.itemId === itemId && asset.speciesId === speciesId)
+}
+
 export function appearanceForSpecies(appearance: PetAppearance, speciesId: SpeciesId): PetAppearance {
   return Object.fromEntries(Object.entries(appearance).filter(([, id]) => customizationAsset(id)?.speciesId === speciesId)) as PetAppearance
 }

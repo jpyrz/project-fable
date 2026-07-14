@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { appearanceForSpecies, customizationAssets, customizationSlots } from './customizationData'
+import { appearanceForSpecies, customizationAssetForItem, customizationAssets, customizationSlots } from './customizationData'
 
 describe('customization catalog', () => {
   it('keeps asset ids and slots unique', () => {
@@ -13,5 +13,10 @@ describe('customization catalog', () => {
 
   it('removes incompatible species layers from an appearance', () => {
     expect(appearanceForSpecies({ hair: 'mossling-hair-leafy-mohawk' }, 'cloudkip')).toEqual({})
+  })
+
+  it('maps owned items to fitted species layers', () => {
+    expect(customizationAssetForItem('item-16', 'mossling')?.id).toBe('mossling-head-sunhat')
+    expect(customizationAssetForItem('item-16', 'cloudkip')).toBeUndefined()
   })
 })

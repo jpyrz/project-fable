@@ -2,6 +2,7 @@ import { Backpack, Hammer, Search, Shirt, ShoppingBag, Sparkles } from 'lucide-r
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { items } from '../data'
+import { customizationAssetForItem } from '../customizationData'
 import { useGame } from '../state/GameContext'
 import { useCelebration } from '../components/Celebration'
 import type { ItemCategory } from '../types'
@@ -57,7 +58,8 @@ export function Bag() {
     <div className={styles.resultMeta}><strong>{owned.length} {owned.length === 1 ? 'treasure' : 'treasures'}</strong><span>Quantities include items not in escrow</span></div>
     {owned.length ? <section className={styles.grid} aria-label="Inventory items">{owned.map((item) => {
       const isCosmetic = item.category === 'accessory' || item.category === 'background'
-      const isEquipped = equipped.has(item.id)
+      const fitted = activePet ? customizationAssetForItem(item.id, activePet.speciesId) : undefined
+      const isEquipped = fitted ? activePet?.appearance[fitted.slot] === fitted.id : equipped.has(item.id)
       return <article className={styles.card} key={item.id}>
         <div className={styles.art}><span>{item.icon}</span><b>×{state.inventory[item.id]}</b></div>
         <div className={styles.itemInfo}><span className={`${styles.rarity} ${styles[item.rarity.toLowerCase()]}`}>{item.rarity}</span><h2>{item.name}</h2><p>{item.description}</p></div>

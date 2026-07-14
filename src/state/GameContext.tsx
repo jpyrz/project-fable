@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { items, recipes, species } from '../data'
 import { calculateGameReward } from '../lib/gameLogic'
 import { foodTraitFor } from '../lib/foodEffects'
-import { customizationAssets } from '../customizationData'
+import { customizationAssetForItem, customizationAssets } from '../customizationData'
 import type { ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, PublicKeeperProfile, SpeciesId } from '../types'
 import { supabase } from '../lib/supabase'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
@@ -76,7 +76,16 @@ function readState(): GameState {
     return {
       ...initialState,
       ...parsed,
-      pets: (parsed.pets ?? []).map((pet) => ({ ...pet, pronouns: pet.pronouns ?? 'they/them', appearance: pet.appearance ?? {} })),
+      pets: (parsed.pets ?? []).map((pet) => {
+        const appearance = { ...(pet.appearance ?? {}) }
+        const equipped = { ...(pet.equipped ?? {}) }
+        const fitted = equipped.head ? customizationAssetForItem(equipped.head, pet.speciesId) : undefined
+        if (fitted && !appearance[fitted.slot]) {
+          appearance[fitted.slot] = fitted.id
+          delete equipped.head
+        }
+        return { ...pet, pronouns: pet.pronouns ?? 'they/them', appearance, equipped }
+      }),
       tasks: (parsed.tasks ?? initialState.tasks).map((task) => ({ ...task, kind: task.kind ?? (task.id.startsWith('care') ? 'care' : task.id.startsWith('play') ? 'play' : 'collect') })),
     }
   } catch { return initialState }
@@ -176,6 +185,11 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     equip(itemId) {
       const item = items.find((entry) => entry.id === itemId)
       if (!item || !activePet || !['accessory', 'background'].includes(item.category)) return
+      const fitted = customizationAssetForItem(itemId, activePet.speciesId)
+      if (fitted) {
+        setState((s) => ({ ...s, pets: s.pets.map((pet) => pet.id === s.activePetId ? { ...pet, appearance: { ...pet.appearance, [fitted.slot]: fitted.id } } : pet) }))
+        return
+      }
       const slot = item.category === 'background' ? 'background' : item.name.includes('Hat') || item.name.includes('Crown') ? 'head' : item.name.includes('Scarf') || item.name.includes('Bow') ? 'neck' : 'held'
       setState((s) => ({ ...s, pets: s.pets.map((pet) => pet.id === s.activePetId ? { ...pet, equipped: { ...pet.equipped, [slot]: itemId } } : pet) }))
     },
