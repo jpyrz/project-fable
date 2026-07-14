@@ -46,6 +46,7 @@ export interface CustomizationDefinition {
   layer: number
   transform: { x: number; y: number; scale: number; rotation?: number }
   tintWithPalette?: boolean
+  hidesSlots?: CustomizationSlot[]
   source: string
   unlocked: boolean
 }

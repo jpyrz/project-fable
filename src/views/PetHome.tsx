@@ -10,7 +10,7 @@ import type { CareKind } from '../types'
 import styles from './PetHome.module.scss'
 
 export function PetHome() {
-  const { activePet, care, feed, state, equip } = useGame()
+  const { activePet, care, feed, state } = useGame()
   const celebrate = useCelebration()
   const [choosingFood, setChoosingFood] = useState(false)
   const [feeding, setFeeding] = useState('')
@@ -36,7 +36,6 @@ export function PetHome() {
       setFeedError(error instanceof Error ? error.message : 'That snack could not be served.')
     } finally { setFeeding('') }
   }
-  const equipItem = async (itemId: string, name: string, icon: string) => { await equip(itemId); celebrate({ icon, title: 'Looking fabulous!', detail: `${name} is now equipped.` }) }
   return <div className={styles.page}>
     <section className={styles.hero}>
       <div className={styles.petStage}><span className={styles.bubble}>“The town smells like sunberries today!”</span><PetAvatar pet={activePet} /><div className={styles.nameplate}><h1>{activePet.name}</h1><span>{kind.name} • {activePet.pronouns}</span></div></div>
@@ -50,10 +49,10 @@ export function PetHome() {
       </div>
     </section>
     <section className={styles.studioCallout}><div><span>NEW IN BRAMBLEWICK</span><h2>The Style Studio is open</h2><p>Shape physical traits, try unlocked looks, and save a style that follows {activePet.name} everywhere.</p></div><Link to="/style-studio"><Scissors /> Visit the Studio</Link></section>
-    <section className={styles.closet}><header><div><span>YOUR CLOSET</span><h2>Quick wardrobe</h2></div><Shirt /></header>{closet.length ? <div className={styles.itemRow}>{closet.map((item) => {
+    <section className={styles.closet}><header><div><span>YOUR CLOSET</span><h2>Owned looks</h2></div><Link to="/style-studio?tab=wardrobe"><Shirt /> Open Style Studio</Link></header>{closet.length ? <div className={styles.itemRow}>{closet.map((item) => {
       const fitted = customizationAssetForItem(item.id, activePet.speciesId)
       const wearing = fitted ? activePet.appearance[fitted.slot] === fitted.id : Object.values(activePet.equipped).includes(item.id)
-      return <button key={item.id} disabled={wearing} onClick={() => void equipItem(item.id, item.name, item.icon)}><b>{fitted ? <img src={fitted.assetPath} alt="" /> : item.icon}</b><span>{item.name}</span><small>{wearing ? 'Wearing' : 'Equip'}</small></button>
+      return fitted ? <Link key={item.id} to="/style-studio?tab=wardrobe"><b><img src={fitted.assetPath} alt="" /></b><span>{item.name}</span><small>{wearing ? 'Wearing · Adjust' : 'Ready to style'}</small></Link> : <div key={item.id} className={styles.notFitted}><b>{item.icon}</b><span>{item.name}</span><small>Not fitted yet</small></div>
     })}</div> : <div className={styles.empty}>Craft or buy an accessory to start dressing up.</div>}</section>
     {choosingFood && <div className={styles.foodOverlay} onClick={(event) => { if (event.target === event.currentTarget) setChoosingFood(false) }}><section className={styles.foodPicker} role="dialog" aria-modal="true" aria-labelledby="food-picker-title"><header><div><span>FROM YOUR BAG</span><h2 id="food-picker-title">What should {activePet.name} eat?</h2><p>Better-quality treats restore more Tummy. Food effects are coming with expeditions.</p></div><button onClick={() => setChoosingFood(false)} aria-label="Close food picker"><X /></button></header>{feedError && <p className={styles.feedError} role="alert">{feedError}</p>}{foods.length ? <div className={styles.foodGrid}>{foods.map((food) => <button key={food.id} disabled={Boolean(feeding)} onClick={() => void giveFood(food.id)}><b>{food.icon}</b><span>{food.name}</span><small>{food.rarity} · +{foodRestore(food.rarity)} Tummy · ×{state.inventory[food.id]}</small><i>{feeding === food.id ? 'Serving…' : 'Choose'}</i></button>)}</div> : <div className={styles.noFood}><b>🧺</b><h3>No snacks in your bag</h3><p>Pick up something tasty from the general store.</p><Link to="/market?tab=shop" onClick={() => setChoosingFood(false)}>Visit the Market</Link></div>}</section></div>}
   </div>

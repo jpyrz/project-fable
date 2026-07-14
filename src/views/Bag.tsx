@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { items } from '../data'
 import { customizationAssetForItem } from '../customizationData'
 import { useGame } from '../state/GameContext'
-import { useCelebration } from '../components/Celebration'
 import type { ItemCategory } from '../types'
 import styles from './Bag.module.scss'
 
@@ -21,11 +20,9 @@ const filters: { id: Filter; label: string; icon: string }[] = [
 ]
 
 export function Bag() {
-  const { state, activePet, equip } = useGame()
-  const celebrate = useCelebration()
+  const { state, activePet } = useGame()
   const [filter, setFilter] = useState<Filter>('all')
   const [search, setSearch] = useState('')
-  const [equipping, setEquipping] = useState('')
   const owned = useMemo(() => items.filter((item) => {
     if ((state.inventory[item.id] ?? 0) < 1) return false
     if (filter !== 'all' && item.category !== filter) return false
@@ -33,16 +30,6 @@ export function Bag() {
   }), [filter, search, state.inventory])
   const uniqueItems = Object.values(state.inventory).filter((quantity) => quantity > 0).length
   const totalItems = Object.values(state.inventory).reduce((total, quantity) => total + Math.max(0, quantity), 0)
-  const equipped = new Set(Object.values(activePet?.equipped ?? {}))
-  const equipItem = async (itemId: string, name: string) => {
-    if (equipping) return
-    setEquipping(itemId)
-    try {
-      await equip(itemId)
-      const item = items.find((entry) => entry.id === itemId)
-      celebrate({ icon: item?.icon ?? '🎀', title: 'Looking fabulous!', detail: `${name} is now equipped.` })
-    } finally { setEquipping('') }
-  }
 
   return <div className={styles.page}>
     <header className="pageHeader"><div><span>KEEPER'S BAG</span><h1>Your gathered treasures</h1><p>Everything you discover, craft, and purchase has a home here.</p></div><Backpack /></header>
@@ -59,12 +46,12 @@ export function Bag() {
     {owned.length ? <section className={styles.grid} aria-label="Inventory items">{owned.map((item) => {
       const isCosmetic = item.category === 'accessory' || item.category === 'background'
       const fitted = activePet ? customizationAssetForItem(item.id, activePet.speciesId) : undefined
-      const isEquipped = fitted ? activePet?.appearance[fitted.slot] === fitted.id : equipped.has(item.id)
+      const isWearing = fitted ? activePet?.appearance[fitted.slot] === fitted.id : false
       return <article className={styles.card} key={item.id}>
         <div className={styles.art}><span>{item.icon}</span><b>×{state.inventory[item.id]}</b></div>
         <div className={styles.itemInfo}><span className={`${styles.rarity} ${styles[item.rarity.toLowerCase()]}`}>{item.rarity}</span><h2>{item.name}</h2><p>{item.description}</p></div>
         <div className={styles.actions}>
-          {isCosmetic && <button className={styles.primaryAction} disabled={isEquipped || equipping === item.id} onClick={() => void equipItem(item.id, item.name)}><Shirt />{equipping === item.id ? 'Equipping…' : isEquipped ? 'Equipped' : 'Equip'}</button>}
+          {isCosmetic && (fitted ? <Link className={styles.primaryAction} to="/style-studio?tab=wardrobe"><Shirt />{isWearing ? 'Adjust look' : 'Try on'}</Link> : <button disabled><Shirt />Not fitted</button>)}
           {item.category === 'material' && <Link className={styles.primaryAction} to="/workshop"><Hammer />Craft</Link>}
           <Link className={isCosmetic || item.category === 'material' ? styles.secondaryAction : styles.primaryAction} to={`/market?tab=sell&item=${item.id}`}><ShoppingBag />Sell</Link>
         </div>

@@ -7,8 +7,10 @@ describe('customization catalog', () => {
     expect(new Set(customizationSlots.map((slot) => slot.id)).size).toBe(customizationSlots.length)
   })
 
-  it('provides one golden Mossling asset for each pilot slot', () => {
-    expect(customizationAssets.filter((asset) => asset.speciesId === 'mossling').map((asset) => asset.slot).sort()).toEqual(['hair', 'head', 'marking', 'outfit'])
+  it('provides one starter asset for every slot and species', () => {
+    for (const speciesId of ['mossling', 'lumipup', 'cloudkip', 'pebblit']) {
+      expect(customizationAssets.filter((asset) => asset.speciesId === speciesId).map((asset) => asset.slot).sort()).toEqual(['hair', 'head', 'marking', 'outfit'])
+    }
   })
 
   it('removes incompatible species layers from an appearance', () => {
@@ -17,6 +19,7 @@ describe('customization catalog', () => {
 
   it('maps owned items to fitted species layers', () => {
     expect(customizationAssetForItem('item-16', 'mossling')?.id).toBe('mossling-head-sunhat')
-    expect(customizationAssetForItem('item-16', 'cloudkip')).toBeUndefined()
+    expect(customizationAssetForItem('item-16', 'cloudkip')?.id).toBe('cloudkip-head-sunhat')
+    expect(customizationAssetForItem('item-121', 'pebblit')?.id).toBe('pebblit-outfit-sunberry-tunic')
   })
 })

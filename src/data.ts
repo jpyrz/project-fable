@@ -13,7 +13,7 @@ const itemSeeds = [
   ['Petal Brush', 'care', '🪮'], ['Giggle Ball', 'care', '🟣'], ['Storybook', 'care', '📖'],
   ['Willow Twig', 'material', '🪵'], ['Star Thread', 'material', '🧵'], ['River Pearl', 'material', '🫧'],
   ['Glow Shard', 'material', '💠'], ['Soft Moss', 'material', '🌱'], ['Brass Button', 'material', '🟡'],
-  ['Sun Hat', 'accessory', '👒'], ['Moon Crown', 'accessory', '👑'], ['Teal Bow', 'accessory', '🎀'],
+  ['Sunny Day Hat', 'accessory', '👒'], ['Moon Crown', 'accessory', '👑'], ['Teal Bow', 'accessory', '🎀'],
   ['Explorer Scarf', 'accessory', '🧣'], ['Tiny Satchel', 'accessory', '👜'], ['Star Wand', 'accessory', '🪄'],
   ['Garden Backdrop', 'background', '🌼'], ['Twilight Backdrop', 'background', '🌙'], ['River Backdrop', 'background', '🏞️'],
   ['Lucky Acorn', 'collectible', '🌰'], ['Glass Firefly', 'collectible', '🏮'], ['Singing Shell', 'collectible', '🐚'],
@@ -34,8 +34,9 @@ const expeditionItemOverrides: Record<number, Partial<Item>> = {
   118: { name: 'Echo Geode', category: 'material', rarity: 'Uncommon', icon: '🪨', description: 'A geode that quietly repeats happy sounds.' },
   119: { name: 'Cave Star', category: 'collectible', rarity: 'Rare', icon: '🌟', description: 'A rare fallen star found in the deepest cavern pocket.' },
   120: { name: 'Moonroot Sky', category: 'background', rarity: 'Mythic', icon: '🌌', description: 'A dreamy cavern sky crafted from Moonroot discoveries.' },
+  121: { name: 'Sunberry Tunic', category: 'accessory', rarity: 'Uncommon', icon: '🧥', description: 'A warm coral tunic tailored by the Bramblewick workshop.' },
 }
-export const items: Item[] = Array.from({ length: 120 }, (_, index) => {
+export const items: Item[] = Array.from({ length: 121 }, (_, index) => {
   const seed = itemSeeds[index % itemSeeds.length]
   const tier = Math.floor(index / itemSeeds.length)
   const category = seed[1] as Item['category']
@@ -56,6 +57,7 @@ export const featuredShopItems = items.slice(0, 12)
 
 export const recipes = [
   { id: 'sun-hat', output: 'item-16', level: 1, needs: [{ id: 'item-10', count: 2 }, { id: 'item-14', count: 1 }] },
+  { id: 'sunberry-tunic', output: 'item-121', level: 2, needs: [{ id: 'item-11', count: 2 }, { id: 'item-14', count: 1 }] },
   { id: 'moon-crown', output: 'item-17', level: 2, needs: [{ id: 'item-11', count: 2 }, { id: 'item-13', count: 1 }] },
   { id: 'star-wand', output: 'item-21', level: 2, needs: [{ id: 'item-10', count: 1 }, { id: 'item-13', count: 2 }] },
   { id: 'glen-garland', output: 'item-112', level: 1, needs: [{ id: 'item-109', count: 2 }, { id: 'item-110', count: 1 }] },

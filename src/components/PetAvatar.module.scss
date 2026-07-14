@@ -8,12 +8,6 @@
 .palette1 .tintable { filter:hue-rotate(-48deg) saturate(.94) brightness(1.04); }
 .palette2 .tintable { filter:hue-rotate(70deg) saturate(.78) brightness(1.03); }
 .aura { position: absolute; z-index: -1; width: 78%; aspect-ratio: 1; background: color-mix(in srgb, var(--pet-color) 58%, white); border-radius: 50%; filter: blur(20px); opacity: .48; }
-.accessories { position: absolute; z-index: 4; inset: 9% 8%; pointer-events: none; }
-.accessories span { position: absolute; font-size: clamp(1.5rem, 10vw, 4rem); filter: drop-shadow(0 2px 1px white); }
-.accessories span:nth-child(1) { top: -4%; left: 39%; }
-.accessories span:nth-child(2) { bottom: 16%; left: 3%; }
-.accessories span:nth-child(3) { right: 0; bottom: 5%; }
-.backdrop { position: absolute; inset: 0; z-index: -2; display: grid; place-items: center; font-size: clamp(7rem, 48vw, 15rem); opacity: .32; }
-.small .accessories, .small .backdrop, .small .aura { display: none; }
+.small .aura { display: none; }
 .small .artStack { transform:scale(1.28); }
 @media (prefers-reduced-motion: reduce) { .petArt { transition: none; } }

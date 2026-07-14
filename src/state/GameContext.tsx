@@ -18,8 +18,8 @@ const initialState: GameState = {
   reputationXp: 65,
   pets: [],
   activePetId: '',
-  inventory: { 'item-1': 2, 'item-6': 1, 'item-10': 4, 'item-11': 3, 'item-13': 2, 'item-14': 2 },
-  collected: ['item-1', 'item-6', 'item-10', 'item-11', 'item-13', 'item-14'],
+  inventory: { 'item-1': 2, 'item-6': 1, 'item-10': 4, 'item-11': 3, 'item-13': 2, 'item-14': 2, 'item-16': 1, 'item-121': 1 },
+  collected: ['item-1', 'item-6', 'item-10', 'item-11', 'item-13', 'item-14', 'item-16', 'item-121'],
   wishlist: ['item-17', 'item-23'],
   listings: [
     { id: 'listing-1', itemId: 'item-17', seller: 'JuniperJay', price: 190, quantity: 1 },
@@ -73,9 +73,13 @@ function readState(): GameState {
     const saved = localStorage.getItem(key)
     if (!saved) return initialState
     const parsed = JSON.parse(saved) as Partial<GameState>
+    const inventory = { ...initialState.inventory, ...parsed.inventory }
+    const collected = [...new Set([...initialState.collected, ...(parsed.collected ?? [])])]
     return {
       ...initialState,
       ...parsed,
+      inventory,
+      collected,
       pets: (parsed.pets ?? []).map((pet) => {
         const appearance = { ...(pet.appearance ?? {}) }
         const equipped = { ...(pet.equipped ?? {}) }
