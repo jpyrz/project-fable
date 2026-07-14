@@ -10,4 +10,10 @@
 .aura { position: absolute; z-index: -1; width: 78%; aspect-ratio: 1; background: color-mix(in srgb, var(--pet-color) 58%, white); border-radius: 50%; filter: blur(20px); opacity: .48; }
 .small .aura { display: none; }
 .small .artStack { transform:scale(1.28); }
+.debug { filter:none; }
+.debug .artStack { background-image:linear-gradient(rgba(92,62,82,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(92,62,82,.13) 1px,transparent 1px); background-size:12.5% 12.5%; outline:2px solid rgba(92,62,82,.45); }
+.debug .artStack::before,.debug .artStack::after { content:''; position:absolute; z-index:90; pointer-events:none; background:rgba(238,104,96,.7); }
+.debug .artStack::before { top:0; bottom:0; left:50%; width:1px; }
+.debug .artStack::after { right:0; left:0; top:50%; height:1px; }
+.debug .selectedLayer { outline:2px dashed #e95858; outline-offset:-2px; }
 @media (prefers-reduced-motion: reduce) { .petArt { transition: none; } }

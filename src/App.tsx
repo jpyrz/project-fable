@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
 import { Layout } from './components/Layout'
 import { useGame } from './state/GameContext'
 import { Onboarding } from './views/Onboarding'
@@ -19,8 +20,14 @@ import { Expeditions } from './views/Expeditions'
 import { ExpeditionJournal } from './views/ExpeditionJournal'
 import { StyleStudio } from './views/StyleStudio'
 
+const CustomizationLab = import.meta.env.DEV
+  ? lazy(() => import('./views/CustomizationLab').then((module) => ({ default: module.CustomizationLab })))
+  : null
+
 export default function App() {
+  const location = useLocation()
   const { state, status, error } = useGame()
+  if (CustomizationLab && location.pathname === '/customization-lab') return <Suspense fallback={<main className="systemState"><b>✂</b><h1>Opening the fitting room…</h1></main>}><CustomizationLab /></Suspense>
   if (status === 'loading') return <main className="systemState"><b>✦</b><h1>Gathering your Fables…</h1></main>
   if (status === 'signed_out') return <AuthScreen />
   if (status === 'password_recovery') return <ResetPassword />
