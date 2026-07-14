@@ -48,7 +48,7 @@ export const customizationAssets: CustomizationAsset[] = [
     id: 'lumipup-hair-nova-swoop', speciesId: 'lumipup', slot: 'hair', label: 'Nova Swoop',
     description: 'A compact swept fur tuft with a starry tip.', icon: '🌟',
     assetPath: '/pets/customization/lumipup/layers/hair-nova-swoop.png', layer: 30,
-    transform: { x: 0.035, y: -0.055, scale: 0.7 }, tintWithPalette: true, source: 'Starter Salon style', starter: true,
+    transform: { x: -0.005, y: -0.0815, scale: 0.78 }, tintWithPalette: true, source: 'Starter Salon style', starter: true,
   },
   {
     id: 'lumipup-outfit-sunberry-tunic', speciesId: 'lumipup', slot: 'outfit', label: 'Sunberry Tunic',
