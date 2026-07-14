@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { CareKind, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
+import type { CareKind, CustomizationDefinition, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, Pet, PetAppearance, PublicKeeperProfile, SpeciesId } from '../types'
 
 export type MaybePromise<T> = T | Promise<T>
 export type BackendMode = 'demo' | 'supabase'
@@ -12,7 +12,7 @@ export interface GameContextValue {
   status: ConnectionStatus
   error: string
   sessionEmail: string
-  onboard: (username: string, petName: string, speciesId: SpeciesId, palette: number, variant: Pet['variant'], pronouns: Pet['pronouns']) => MaybePromise<void>
+  onboard: (username: string, petName: string, speciesId: SpeciesId, palette: number, pronouns: Pet['pronouns'], appearance: PetAppearance) => MaybePromise<void>
   care: (kind: CareKind) => MaybePromise<void>
   feed: (itemId: string) => MaybePromise<void>
   buyShopItem: (itemId: string) => MaybePromise<boolean>
@@ -20,6 +20,8 @@ export interface GameContextValue {
   createListing: (itemId: string, quantity: number, unitPrice: number) => MaybePromise<boolean>
   craft: (recipeId: string) => MaybePromise<boolean>
   equip: (itemId: string) => MaybePromise<void>
+  getCustomizationCatalog: (petId: string) => MaybePromise<CustomizationDefinition[]>
+  savePetCustomization: (petId: string, palette: number, appearance: PetAppearance) => MaybePromise<void>
   toggleWishlist: (itemId: string) => MaybePromise<void>
   addMessage: (channel: string, body: string) => MaybePromise<void>
   reportMessage: (messageId: string, reason: string) => MaybePromise<void>

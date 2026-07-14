@@ -31,7 +31,7 @@ export function KeeperProfile() {
   return <div className={styles.page}>
     <section className={styles.banner}>
       <div className={styles.identity}><div className={styles.avatar}>{profile.username.slice(0, 1)}</div><div><span>KEEPER PROFILE</span><h1>{profile.username}</h1><p>Showing off a little corner of Bramblewick.</p></div></div>
-      {pet && <div className={styles.pet}><PetAvatar pet={pet} /><div><span>ACTIVE COMPANION</span><h2>{pet.name}</h2><p>{getSpecies(pet.speciesId).name} · {pet.variant === 'tufted' ? 'Tufted' : 'Classic'}</p></div></div>}
+      {pet && <div className={styles.pet}><PetAvatar pet={pet} /><div><span>ACTIVE COMPANION</span><h2>{pet.name}</h2><p>{getSpecies(pet.speciesId).name} · Custom look</p></div></div>}
     </section>
     <section className={styles.stats}><article><Award /><b>Reputation Level {profile.reputation}</b><span>{levelProgress}/100 to Level {profile.reputation + 1}</span></article><article><BookOpen /><b>{profile.collected.length} highlights</b><span>Favorite collection finds</span></article><article><Users /><b>{profile.friendCount} friends</b><span>Keepers in their circle</span></article></section>
     <section className={styles.badges}><header><div><span>EXPEDITION BADGES</span><h2>Field achievements</h2></div><Award /></header>{profile.badges.length ? <div>{profile.badges.map((badge) => <article key={badge.id}><b>{badge.icon}</b><strong>{badge.label}</strong><small>{badge.description}</small></article>)}</div> : <p>No expedition badges earned yet.</p>}</section>

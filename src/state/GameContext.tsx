@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { items, recipes, species } from '../data'
 import { calculateGameReward } from '../lib/gameLogic'
 import { foodTraitFor } from '../lib/foodEffects'
+import { customizationAssets } from '../customizationData'
 import type { ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, PublicKeeperProfile, SpeciesId } from '../types'
 import { supabase } from '../lib/supabase'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
@@ -75,7 +76,7 @@ function readState(): GameState {
     return {
       ...initialState,
       ...parsed,
-      pets: (parsed.pets ?? []).map((pet) => ({ ...pet, variant: pet.variant ?? 'classic', pronouns: pet.pronouns ?? 'they/them' })),
+      pets: (parsed.pets ?? []).map((pet) => ({ ...pet, pronouns: pet.pronouns ?? 'they/them', appearance: pet.appearance ?? {} })),
       tasks: (parsed.tasks ?? initialState.tasks).map((task) => ({ ...task, kind: task.kind ?? (task.id.startsWith('care') ? 'care' : task.id.startsWith('play') ? 'play' : 'collect') })),
     }
   } catch { return initialState }
@@ -108,8 +109,8 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     status: 'ready',
     error: '',
     sessionEmail: '',
-    onboard(username, petName, speciesId, palette, variant, pronouns) {
-      const pet = { id: crypto.randomUUID(), name: petName, speciesId, palette, variant, pronouns, hunger: 78, mood: 82, cleanliness: 74, equipped: {} }
+    onboard(username, petName, speciesId, palette, pronouns, appearance) {
+      const pet = { id: crypto.randomUUID(), name: petName, speciesId, palette, pronouns, hunger: 78, mood: 82, cleanliness: 74, equipped: {}, appearance }
       setState((s) => ({ ...s, onboarded: true, ageConfirmed: true, username, pets: [pet], activePetId: pet.id }))
     },
     care(kind) {
@@ -177,6 +178,25 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
       if (!item || !activePet || !['accessory', 'background'].includes(item.category)) return
       const slot = item.category === 'background' ? 'background' : item.name.includes('Hat') || item.name.includes('Crown') ? 'head' : item.name.includes('Scarf') || item.name.includes('Bow') ? 'neck' : 'held'
       setState((s) => ({ ...s, pets: s.pets.map((pet) => pet.id === s.activePetId ? { ...pet, equipped: { ...pet.equipped, [slot]: itemId } } : pet) }))
+    },
+    getCustomizationCatalog(petId) {
+      const pet = state.pets.find((entry) => entry.id === petId)
+      if (!pet) throw new Error('Companion not found.')
+      return customizationAssets.filter((asset) => asset.speciesId === pet.speciesId).map((asset) => ({
+        ...asset,
+        unlocked: Boolean(asset.starter || (asset.reputationRequired && state.reputation >= asset.reputationRequired) || (asset.itemId && (state.inventory[asset.itemId] ?? 0) > 0)),
+      }))
+    },
+    savePetCustomization(petId, palette, appearance) {
+      const pet = state.pets.find((entry) => entry.id === petId)
+      if (!pet) throw new Error('Companion not found.')
+      const available = customizationAssets.filter((asset) => asset.speciesId === pet.speciesId)
+      for (const [slot, id] of Object.entries(appearance)) {
+        const asset = available.find((entry) => entry.id === id && entry.slot === slot)
+        const unlocked = asset && (asset.starter || (asset.reputationRequired && state.reputation >= asset.reputationRequired) || (asset.itemId && (state.inventory[asset.itemId] ?? 0) > 0))
+        if (!unlocked) throw new Error('That style has not been unlocked yet.')
+      }
+      setState((s) => ({ ...s, pets: s.pets.map((entry) => entry.id === petId ? { ...entry, palette, appearance } : entry) }))
     },
     toggleWishlist(itemId) { setState((s) => ({ ...s, wishlist: s.wishlist.includes(itemId) ? s.wishlist.filter((id) => id !== itemId) : [...s.wishlist, itemId] })) },
     addMessage(channel, body) {
@@ -291,12 +311,12 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
         name: friend!.pet,
         speciesId: 'mossling' as const,
         palette: friend!.name.length % 3,
-        variant: friend!.name.length % 2 ? 'tufted' as const : 'classic' as const,
         pronouns: 'they/them' as const,
         hunger: 80,
         mood: 85,
         cleanliness: 78,
         equipped: {},
+        appearance: {},
       }
       return { username: isSelf ? state.username : friend!.name, reputation: isSelf ? state.reputation : 1, reputationXp: isSelf ? state.reputationXp : 0, activePet: previewPet, collected: isSelf ? state.collected : [], wishlist: isSelf ? state.wishlist : [], friendCount: isSelf ? state.friends.length : 1, badges: [] } satisfies PublicKeeperProfile
     },

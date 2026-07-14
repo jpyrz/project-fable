@@ -1,6 +1,8 @@
 export type SpeciesId = 'mossling' | 'lumipup' | 'cloudkip' | 'pebblit'
 export type CareKind = 'food' | 'groom' | 'play'
 export type ItemCategory = 'food' | 'care' | 'material' | 'collectible' | 'accessory' | 'background'
+export type CustomizationSlot = 'marking' | 'hair' | 'outfit' | 'head'
+export type PetAppearance = Partial<Record<CustomizationSlot, string>>
 
 export interface Species {
   id: SpeciesId
@@ -25,12 +27,27 @@ export interface Pet {
   name: string
   speciesId: SpeciesId
   palette: number
-  variant: 'classic' | 'tufted'
   pronouns: 'they/them' | 'she/her' | 'he/him'
   hunger: number
   mood: number
   cleanliness: number
   equipped: Partial<Record<'head' | 'neck' | 'held' | 'background', string>>
+  appearance: PetAppearance
+}
+
+export interface CustomizationDefinition {
+  id: string
+  speciesId: SpeciesId
+  slot: CustomizationSlot
+  label: string
+  description: string
+  icon: string
+  assetPath: string
+  layer: number
+  transform: { x: number; y: number; scale: number; rotation?: number }
+  tintWithPalette?: boolean
+  source: string
+  unlocked: boolean
 }
 
 export interface DailyTask {

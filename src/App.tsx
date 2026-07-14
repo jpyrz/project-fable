@@ -17,6 +17,7 @@ import { Friends } from './views/Friends'
 import { KeeperProfile } from './views/KeeperProfile'
 import { Expeditions } from './views/Expeditions'
 import { ExpeditionJournal } from './views/ExpeditionJournal'
+import { StyleStudio } from './views/StyleStudio'
 
 export default function App() {
   const { state, status, error } = useGame()
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/keeper/:username" element={<KeeperProfile />} />
         <Route path="/expeditions" element={<Expeditions />} />
         <Route path="/expedition-journal" element={<ExpeditionJournal />} />
+        <Route path="/style-studio" element={<StyleStudio />} />
         <Route path="*" element={<Navigate to="/town" replace />} />
       </Route>
     </Routes>

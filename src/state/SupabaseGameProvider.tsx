@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { items } from '../data'
+import { customizationAssets } from '../customizationData'
 import { supabase } from '../lib/supabase'
-import type { DailyTask, ExpeditionBadge, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, FoodTrait, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
+import type { CustomizationDefinition, DailyTask, ExpeditionBadge, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, FoodTrait, GameState, Pet, PublicKeeperProfile, SpeciesId } from '../types'
 import { GameContext, type GameContextValue } from './GameContextDefinition'
 
 interface Snapshot {
@@ -26,13 +27,15 @@ interface CompanionPet {
   name: string
   species_id: SpeciesId
   palette: number
-  variant: Pet['variant']
   pronouns: Pet['pronouns']
   hunger: number
   mood: number
   cleanliness: number
   equipped: Record<string, string>
+  appearance: Pet['appearance']
 }
+
+interface CustomizationAccessResult { id: string; unlocked: boolean; source: string }
 
 interface DailyAdventures { tasks: DailyTask[]; reset_at: string }
 
@@ -133,12 +136,12 @@ function mapSnapshot(snapshot: Snapshot, companions: CompanionPet[], adventures:
     name: pet.name,
     speciesId: pet.species_id,
     palette: pet.palette,
-    variant: pet.variant,
     pronouns: pet.pronouns,
     hunger: pet.hunger,
     mood: pet.mood,
     cleanliness: pet.cleanliness,
     equipped: pet.equipped,
+    appearance: pet.appearance ?? {},
   }))
   return {
     onboarded: Boolean(snapshot.profile.active_pet_id && pets.length),
@@ -233,8 +236,8 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
     status,
     error,
     sessionEmail: session?.user.email ?? '',
-    async onboard(username, petName, speciesId, palette, variant, pronouns) {
-      await rpc('complete_onboarding', { p_username: username, p_pet_name: petName, p_species: speciesId, p_palette: palette, p_variant: variant, p_pronouns: pronouns })
+    async onboard(username, petName, speciesId, palette, pronouns, appearance) {
+      await rpc('complete_onboarding', { p_username: username, p_pet_name: petName, p_species: speciesId, p_palette: palette, p_pronouns: pronouns, p_appearance: appearance })
       await refresh()
     },
     async care(kind) {
@@ -262,6 +265,18 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
       if (!item || !state.activePetId) return
       const slot = item.category === 'background' ? 'background' : item.name.includes('Hat') || item.name.includes('Crown') ? 'head' : item.name.includes('Scarf') || item.name.includes('Bow') ? 'neck' : 'held'
       await rpc('equip_item', { p_pet: state.activePetId, p_slot: slot, p_item: itemId }); await refresh()
+    },
+    async getCustomizationCatalog(petId) {
+      const result = await rpc('get_customization_catalog', { p_pet: petId }) as CustomizationAccessResult[]
+      return result.map((access) => {
+        const asset = customizationAssets.find((entry) => entry.id === access.id)
+        if (!asset) return null
+        return { ...asset, source: access.source, unlocked: access.unlocked } satisfies CustomizationDefinition
+      }).filter((asset): asset is CustomizationDefinition => Boolean(asset))
+    },
+    async savePetCustomization(petId, palette, appearance) {
+      await rpc('save_pet_customization', { p_pet: petId, p_palette: palette, p_appearance: appearance })
+      await refresh()
     },
     async toggleWishlist(itemId) { await rpc('toggle_wishlist_item', { p_item: itemId }); await refresh() },
     async addMessage(channel, body) {
@@ -346,12 +361,12 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
           name: pet.name,
           speciesId: pet.species_id,
           palette: pet.palette,
-          variant: pet.variant,
           pronouns: pet.pronouns,
           hunger: pet.hunger,
           mood: pet.mood,
           cleanliness: pet.cleanliness,
           equipped: pet.equipped,
+          appearance: pet.appearance ?? {},
         } : null,
         collected: result.collected,
         wishlist: result.wishlist,

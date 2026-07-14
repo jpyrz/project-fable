@@ -13,17 +13,18 @@ export function Onboarding() {
   const [petName, setPetName] = useState('')
   const [speciesId, setSpeciesId] = useState<SpeciesId>('mossling')
   const [palette, setPalette] = useState(0)
-  const [variant, setVariant] = useState<Pet['variant']>('classic')
+  const [starterHair, setStarterHair] = useState<'none' | 'mossling-hair-leafy-mohawk'>('none')
   const [pronouns, setPronouns] = useState<Pet['pronouns']>('they/them')
   const [age, setAge] = useState(false)
   const [error, setError] = useState('')
   const selected = species.find((entry) => entry.id === speciesId)!
-  const previewPet: Pet = { id: 'preview', name: petName || 'Your Fable', speciesId, palette, variant, pronouns, hunger: 100, mood: 100, cleanliness: 100, equipped: {} }
+  const appearance = speciesId === 'mossling' && starterHair !== 'none' ? { hair: starterHair } as const : {}
+  const previewPet: Pet = { id: 'preview', name: petName || 'Your Fable', speciesId, palette, pronouns, hunger: 100, mood: 100, cleanliness: 100, equipped: {}, appearance }
   const canContinue = step === 0 ? username.trim().length >= 3 && age : step === 1 ? Boolean(speciesId) : petName.trim().length >= 2
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }) }, [step])
   const complete = async () => {
     setError('')
-    try { await onboard(username.trim(), petName.trim(), speciesId, palette, variant, pronouns) }
+    try { await onboard(username.trim(), petName.trim(), speciesId, palette, pronouns, appearance) }
     catch (onboardError) { setError(onboardError instanceof Error ? onboardError.message : 'Could not finish onboarding.') }
   }
 
@@ -43,14 +44,14 @@ export function Onboarding() {
         </div>}
         {step === 1 && <div className={styles.content}>
           <h2>Meet your first Fable</h2><p>Each species has its own personality. You can befriend more later.</p>
-          <div className={styles.speciesGrid}>{species.map((entry) => <button key={entry.id} className={speciesId === entry.id ? styles.selected : ''} onClick={() => setSpeciesId(entry.id)}><img src={`/pets/${entry.id}-classic.png`} alt="" /><strong>{entry.name}</strong><span>{entry.tagline}</span></button>)}</div>
+          <div className={styles.speciesGrid}>{species.map((entry) => <button key={entry.id} className={speciesId === entry.id ? styles.selected : ''} onClick={() => setSpeciesId(entry.id)}><img src={entry.id === 'mossling' ? '/pets/customization/mossling/base.png' : `/pets/${entry.id}-classic.png`} alt="" /><strong>{entry.name}</strong><span>{entry.tagline}</span></button>)}</div>
         </div>}
         {step === 2 && <div className={styles.content}>
           <div className={styles.petPreview}><PetAvatar pet={previewPet} /></div>
           <h2>A perfect match!</h2>
           <label>Pet name<input value={petName} maxLength={18} onChange={(event) => setPetName(event.target.value.replace(/[^a-zA-Z0-9 '-]/g, ''))} placeholder="What will you call them?" /></label>
           <fieldset><legend>Choose a color</legend><div className={styles.palettes}>{selected.colors.map((color, index) => <button key={color} aria-label={`Palette ${index + 1}`} className={palette === index ? styles.paletteSelected : ''} style={{ background: color }} onClick={() => setPalette(index)} />)}</div></fieldset>
-          <fieldset><legend>Choose a body style</legend><div className={styles.choiceRow}><button className={variant === 'classic' ? styles.choiceSelected : ''} onClick={() => setVariant('classic')}>Classic</button><button className={variant === 'tufted' ? styles.choiceSelected : ''} onClick={() => setVariant('tufted')}>Tufted</button></div></fieldset>
+          {speciesId === 'mossling' ? <fieldset><legend>Choose a starter trait</legend><div className={styles.choiceRow}><button className={starterHair === 'none' ? styles.choiceSelected : ''} onClick={() => setStarterHair('none')}>Clean moss</button><button className={starterHair === 'mossling-hair-leafy-mohawk' ? styles.choiceSelected : ''} onClick={() => setStarterHair('mossling-hair-leafy-mohawk')}>🌿 Leafy mohawk</button></div></fieldset> : <p className={styles.studioNote}>Physical-trait customization is beginning with Mosslings. Every species will visit the Style Studio in a future art pass.</p>}
           <label>Pronouns<select value={pronouns} onChange={(event) => setPronouns(event.target.value as Pet['pronouns'])}><option>they/them</option><option>she/her</option><option>he/him</option></select></label>
         </div>}
         <footer>
