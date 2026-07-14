@@ -46,9 +46,9 @@ export const customizationAssets: CustomizationAsset[] = [
   },
   {
     id: 'lumipup-hair-nova-swoop', speciesId: 'lumipup', slot: 'hair', label: 'Nova Swoop',
-    description: 'A bright curled forelock with a starry tip.', icon: '🌟',
+    description: 'A compact swept fur tuft with a starry tip.', icon: '🌟',
     assetPath: '/pets/customization/lumipup/layers/hair-nova-swoop.png', layer: 30,
-    transform: { x: 0, y: 0, scale: 1 }, tintWithPalette: true, source: 'Starter Salon style', starter: true,
+    transform: { x: 0.14, y: 0.02, scale: 0.7 }, tintWithPalette: true, source: 'Starter Salon style', starter: true,
   },
   {
     id: 'lumipup-outfit-sunberry-tunic', speciesId: 'lumipup', slot: 'outfit', label: 'Sunberry Tunic',
@@ -94,9 +94,9 @@ export const customizationAssets: CustomizationAsset[] = [
   },
   {
     id: 'pebblit-hair-crystal-crest', speciesId: 'pebblit', slot: 'hair', label: 'Crystal Crest',
-    description: 'A proud row of polished crown crystals.', icon: '🔮',
+    description: 'Three small polished crystals nestled between the ears.', icon: '🔮',
     assetPath: '/pets/customization/pebblit/layers/hair-crystal-crest.png', layer: 30,
-    transform: { x: 0, y: 0, scale: 1 }, tintWithPalette: true, source: 'Starter Salon style', starter: true,
+    transform: { x: 0.09, y: -0.06, scale: 0.82 }, tintWithPalette: true, source: 'Starter Salon style', starter: true,
   },
   {
     id: 'pebblit-outfit-sunberry-tunic', speciesId: 'pebblit', slot: 'outfit', label: 'Sunberry Tunic',

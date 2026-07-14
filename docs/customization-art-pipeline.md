@@ -22,7 +22,7 @@ The launch-species kit establishes the temporary production contract for modular
 | Mossling | Head | `head-sunny-day-hat.png` | Own item 16 | `x .178`, `y -.097`, `scale .62` |
 | Lumipup | Base | `base.png` | Always | Full canvas |
 | Lumipup | Marking | `marking-comet-dust.png` | Starter | Full canvas |
-| Lumipup | Hair | `hair-nova-swoop.png` | Starter | Full canvas |
+| Lumipup | Hair | `hair-nova-swoop.png` | Starter | `x .14`, `y .02`, `scale .7` |
 | Lumipup | Outfit | `outfit-sunberry-tunic.png` | Own item 121 | `x .19`, `y .27`, `scale .6` |
 | Lumipup | Head | shared Sunny Day Hat | Own item 16 | `x .25`, `y -.05`, `scale .45` |
 | Cloudkip | Base | `base.png` | Always | Full canvas |
@@ -32,7 +32,7 @@ The launch-species kit establishes the temporary production contract for modular
 | Cloudkip | Head | shared Sunny Day Hat | Own item 16 | `x .31`, `y .02`, `scale .38` |
 | Pebblit | Base | `base.png` | Always | Full canvas |
 | Pebblit | Marking | `marking-geode-freckles.png` | Starter | Full canvas |
-| Pebblit | Hair | `hair-crystal-crest.png` | Starter | Full canvas |
+| Pebblit | Hair | `hair-crystal-crest.png` | Starter | `x .09`, `y -.06`, `scale .82` |
 | Pebblit | Outfit | `outfit-sunberry-tunic.png` | Own item 121 | `x .22`, `y .37`, `scale .56` |
 | Pebblit | Head | shared Sunny Day Hat | Own item 16 | `x .22`, `y -.02`, `scale .55` |
 
@@ -47,9 +47,9 @@ The built-in image generator used each approved neutral pet as the exact style a
 - Sunberry Speckles: symmetrical raspberry and golden cheek/belly freckles.
 - Sunberry Tunic: a front-half coral belly panel with open sides, separate shoulder tabs, cream stitching, and a leaf clasp. The rear collar and inside/back of the garment are intentionally omitted so the layer reads as worn clothing.
 - Sunny Day Hat: golden watercolor sunhat, coral ribbon, and stitched leaf accent.
-- Lumipup: Comet Dust starlight freckles, a golden Nova Swoop forelock, and a four-legged front/side Sunberry Tunic.
+- Lumipup: Comet Dust starlight freckles, a compact three-lock Nova Swoop with a tiny star tip that keeps the eyes clear, and a four-legged front/side Sunberry Tunic.
 - Cloudkip: Raindrop Blush cheek droplets, a blue Storm Curl crest, and a wing-friendly front Sunberry Tunic.
-- Pebblit: Geode Freckles, a lavender-and-gold Crystal Crest, and an upright front Sunberry Tunic with crystal cutouts.
+- Pebblit: Geode Freckles, a compact three-spike lavender-and-gold Crystal Crest that stays between the natural crystal ears, and an upright front Sunberry Tunic with crystal cutouts.
 
 Chroma sources were processed with the image-generation skill's soft-matte and despill helper, resized to 1024×1024, and checked as assembled pet composites before inclusion. Generated source images remain outside the deployed asset tree.
 
