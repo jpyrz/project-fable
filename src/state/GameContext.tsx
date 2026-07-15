@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { items, recipes, species } from '../data'
-import { calculateGameReward } from '../lib/gameLogic'
+import { calculateBondReward, calculateGameReward } from '../lib/gameLogic'
 import { foodTraitFor } from '../lib/foodEffects'
 import { customizationAssetForItem, customizationAssets } from '../customizationData'
 import type { ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, PublicKeeperProfile, SpeciesId } from '../types'
@@ -18,8 +18,8 @@ const initialState: GameState = {
   reputationXp: 65,
   pets: [],
   activePetId: '',
-  inventory: { 'item-1': 2, 'item-6': 1, 'item-10': 4, 'item-11': 3, 'item-13': 2, 'item-14': 2, 'item-16': 1, 'item-121': 1 },
-  collected: ['item-1', 'item-6', 'item-10', 'item-11', 'item-13', 'item-14', 'item-16', 'item-121'],
+  inventory: { 'item-1': 2, 'item-6': 1, 'item-10': 4, 'item-11': 3, 'item-13': 2, 'item-14': 2, 'item-16': 1, 'item-22': 1, 'item-121': 1 },
+  collected: ['item-1', 'item-6', 'item-10', 'item-11', 'item-13', 'item-14', 'item-16', 'item-22', 'item-121'],
   wishlist: ['item-17', 'item-23'],
   listings: [
     { id: 'listing-1', itemId: 'item-17', seller: 'JuniperJay', price: 190, quantity: 1 },
@@ -88,7 +88,12 @@ function readState(): GameState {
           appearance[fitted.slot] = fitted.id
           delete equipped.head
         }
-        return { ...pet, pronouns: pet.pronouns ?? 'they/them', appearance, equipped }
+        const fittedBackground = equipped.background ? customizationAssetForItem(equipped.background, pet.speciesId) : undefined
+        if (fittedBackground && !appearance.background) {
+          appearance.background = fittedBackground.id
+          delete equipped.background
+        }
+        return { ...pet, pronouns: pet.pronouns ?? 'they/them', bondXp: pet.bondXp ?? 0, appearance, equipped }
       }),
       tasks: (parsed.tasks ?? initialState.tasks).map((task) => ({ ...task, kind: task.kind ?? (task.id.startsWith('care') ? 'care' : task.id.startsWith('play') ? 'play' : 'collect') })),
     }
@@ -123,17 +128,17 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     error: '',
     sessionEmail: '',
     onboard(username, petName, speciesId, palette, pronouns, appearance) {
-      const pet = { id: crypto.randomUUID(), name: petName, speciesId, palette, pronouns, hunger: 78, mood: 82, cleanliness: 74, equipped: {}, appearance }
+      const pet = { id: crypto.randomUUID(), name: petName, speciesId, palette, pronouns, hunger: 78, mood: 82, cleanliness: 74, bondXp: 0, equipped: {}, appearance }
       setState((s) => ({ ...s, onboarded: true, ageConfirmed: true, username, pets: [pet], activePetId: pet.id }))
     },
-    care(kind) {
+    care() {
       setState((s) => incrementTask({
         ...s,
         pets: s.pets.map((pet) => pet.id !== s.activePetId ? pet : {
           ...pet,
-          hunger: Math.min(100, pet.hunger + (kind === 'food' ? 18 : 3)),
-          mood: Math.min(100, pet.mood + (kind === 'play' ? 18 : 4)),
-          cleanliness: Math.min(100, pet.cleanliness + (kind === 'groom' ? 20 : 2)),
+          hunger: Math.min(100, pet.hunger + 3),
+          mood: Math.min(100, pet.mood + 4),
+          cleanliness: Math.min(100, pet.cleanliness + 20),
         }),
       }, 'care'))
     },
@@ -200,7 +205,7 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     getCustomizationCatalog(petId) {
       const pet = state.pets.find((entry) => entry.id === petId)
       if (!pet) throw new Error('Companion not found.')
-      return customizationAssets.filter((asset) => asset.speciesId === pet.speciesId).map((asset) => ({
+      return customizationAssets.filter((asset) => asset.speciesId === pet.speciesId || asset.speciesId === 'all').map((asset) => ({
         ...asset,
         unlocked: Boolean(asset.starter || (asset.reputationRequired && state.reputation >= asset.reputationRequired) || (asset.itemId && (state.inventory[asset.itemId] ?? 0) > 0)),
       }))
@@ -208,7 +213,7 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     savePetCustomization(petId, palette, appearance) {
       const pet = state.pets.find((entry) => entry.id === petId)
       if (!pet) throw new Error('Companion not found.')
-      const available = customizationAssets.filter((asset) => asset.speciesId === pet.speciesId)
+      const available = customizationAssets.filter((asset) => asset.speciesId === pet.speciesId || asset.speciesId === 'all')
       for (const [slot, id] of Object.entries(appearance)) {
         const asset = available.find((entry) => entry.id === id && entry.slot === slot)
         const unlocked = asset && (asset.starter || (asset.reputationRequired && state.reputation >= asset.reputationRequired) || (asset.itemId && (state.inventory[asset.itemId] ?? 0) > 0))
@@ -230,8 +235,17 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
     gameReward(_gameId, score) {
       const reward = calculateGameReward(score)
       const material = score % 2 ? 'item-10' : 'item-11'
-      setState((s) => incrementTask({ ...s, coins: s.coins + reward, reputationXp: s.reputationXp + 8, inventory: { ...s.inventory, [material]: (s.inventory[material] ?? 0) + 1 }, collected: [...new Set([...s.collected, material])] }, 'play'))
-      return reward
+      const joy = 12
+      const bondXp = calculateBondReward(score)
+      setState((s) => incrementTask({
+        ...s,
+        coins: s.coins + reward,
+        reputationXp: s.reputationXp + 8,
+        inventory: { ...s.inventory, [material]: (s.inventory[material] ?? 0) + 1 },
+        collected: [...new Set([...s.collected, material])],
+        pets: s.pets.map((pet) => pet.id === s.activePetId ? { ...pet, mood: Math.min(100, pet.mood + joy), bondXp: pet.bondXp + bondXp } : pet),
+      }, 'play'))
+      return { coins: reward, joy, bondXp, itemId: material }
     },
     claimTask(taskId) {
       setState((s) => {
@@ -333,6 +347,7 @@ function DemoGameProvider({ children }: { children: ReactNode }) {
         hunger: 80,
         mood: 85,
         cleanliness: 78,
+        bondXp: 0,
         equipped: {},
         appearance: {},
       }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs><radialGradient id="cave"><stop stop-color="#765f9f"/><stop offset=".65" stop-color="#3f375f"/><stop offset="1" stop-color="#282640"/></radialGradient><linearGradient id="crystal" x2="1" y2="1"><stop stop-color="#e3b9ff"/><stop offset="1" stop-color="#6c70d7"/></linearGradient></defs>
+  <rect width="1024" height="1024" fill="url(#cave)"/><circle cx="510" cy="230" r="108" fill="#fff0c4" opacity=".92"/>
+  <g fill="#fff" opacity=".82"><circle cx="180" cy="190" r="7"/><circle cx="290" cy="310" r="5"/><circle cx="720" cy="150" r="6"/><circle cx="845" cy="310" r="8"/><path d="m160 380 9 22 22 9-22 9-9 22-9-22-22-9 22-9Z"/><path d="m790 410 8 20 20 8-20 8-8 20-8-20-20-8 20-8Z"/></g>
+  <path d="M0 770Q190 650 360 760T700 720T1024 690V1024H0Z" fill="#322d50"/>
+  <g fill="url(#crystal)" stroke="#bcd2ff" stroke-width="9"><path d="m80 880 90-260 85 260Z"/><path d="m185 920 105-210 70 210Z"/><path d="m760 910 95-300 90 300Z"/><path d="m680 940 100-220 65 220Z"/></g><g fill="#99e5d1" opacity=".72"><ellipse cx="420" cy="840" rx="95" ry="28"/><ellipse cx="605" cy="900" rx="120" ry="32"/></g>
+</svg>

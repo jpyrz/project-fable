@@ -21,12 +21,14 @@ describe('customization catalog', () => {
 
   it('removes incompatible species layers from an appearance', () => {
     expect(appearanceForSpecies({ hair: 'mossling-hair-leafy-mohawk' }, 'cloudkip')).toEqual({})
+    expect(appearanceForSpecies({ background: 'background-garden' }, 'cloudkip')).toEqual({ background: 'background-garden' })
   })
 
   it('maps owned items to fitted species layers', () => {
     expect(customizationAssetForItem('item-16', 'mossling')?.id).toBe('mossling-head-sunhat')
     expect(customizationAssetForItem('item-16', 'cloudkip')?.id).toBe('cloudkip-head-sunhat')
     expect(customizationAssetForItem('item-121', 'pebblit')?.id).toBe('pebblit-outfit-sunberry-tunic')
+    expect(customizationAssetForItem('item-120', 'pebblit')?.id).toBe('background-moonroot-sky')
   })
 
   it('keeps approved Lumipup layer alignments', () => {

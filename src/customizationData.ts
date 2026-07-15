@@ -11,9 +11,34 @@ export const customizationSlots: Array<{ id: CustomizationSlot; label: string; t
   { id: 'hair', label: 'Hair & crests', tab: 'salon', icon: '🌿', description: 'Leafy styles and head growth.' },
   { id: 'outfit', label: 'Outfits', tab: 'wardrobe', icon: '👕', description: 'Species-fitted clothing layers.' },
   { id: 'head', label: 'Headwear', tab: 'wardrobe', icon: '👒', description: 'Hats and head accessories.' },
+  { id: 'background', label: 'Backgrounds', tab: 'wardrobe', icon: '🖼️', description: 'Collected scenes that travel with your companion.' },
 ]
 
 export const customizationAssets: CustomizationAsset[] = [
+  {
+    id: 'background-garden', speciesId: 'all', slot: 'background', label: 'Garden Backdrop',
+    description: 'A sunny flower garden in full bloom.', icon: '🌼',
+    assetPath: '/items/backgrounds/garden-backdrop.svg', layer: 0,
+    transform: { x: 0, y: 0, scale: 1 }, source: 'Own Garden Backdrop', itemId: 'item-22',
+  },
+  {
+    id: 'background-twilight', speciesId: 'all', slot: 'background', label: 'Twilight Backdrop',
+    description: 'A violet evening filled with sleepy stars.', icon: '🌙',
+    assetPath: '/items/backgrounds/twilight-backdrop.svg', layer: 0,
+    transform: { x: 0, y: 0, scale: 1 }, source: 'Own Twilight Backdrop', itemId: 'item-23',
+  },
+  {
+    id: 'background-river', speciesId: 'all', slot: 'background', label: 'River Backdrop',
+    description: 'A bright riverside with soft rolling hills.', icon: '🏞️',
+    assetPath: '/items/backgrounds/river-backdrop.svg', layer: 0,
+    transform: { x: 0, y: 0, scale: 1 }, source: 'Own River Backdrop', itemId: 'item-24',
+  },
+  {
+    id: 'background-moonroot-sky', speciesId: 'all', slot: 'background', label: 'Moonroot Sky',
+    description: 'A rare crystal cavern glowing under a moonlit sky.', icon: '🌌',
+    assetPath: '/items/backgrounds/moonroot-sky.svg', layer: 0,
+    transform: { x: 0, y: 0, scale: 1 }, source: 'Own Moonroot Sky', itemId: 'item-120',
+  },
   {
     id: 'mossling-marking-sunberry-speckles', speciesId: 'mossling', slot: 'marking', label: 'Sunberry Speckles',
     description: 'A warm scattering of berry-colored freckles.', icon: '🍓',
@@ -117,9 +142,12 @@ export function customizationAsset(id: string) {
 }
 
 export function customizationAssetForItem(itemId: string, speciesId: SpeciesId) {
-  return customizationAssets.find((asset) => asset.itemId === itemId && asset.speciesId === speciesId)
+  return customizationAssets.find((asset) => asset.itemId === itemId && (asset.speciesId === speciesId || asset.speciesId === 'all'))
 }
 
 export function appearanceForSpecies(appearance: PetAppearance, speciesId: SpeciesId): PetAppearance {
-  return Object.fromEntries(Object.entries(appearance).filter(([, id]) => customizationAsset(id)?.speciesId === speciesId)) as PetAppearance
+  return Object.fromEntries(Object.entries(appearance).filter(([, id]) => {
+    const asset = customizationAsset(id)
+    return asset?.speciesId === speciesId || asset?.speciesId === 'all'
+  })) as PetAppearance
 }

@@ -21,7 +21,7 @@ export function Onboarding() {
   const selected = species.find((entry) => entry.id === speciesId)!
   const starterHairOption = customizationAssets.find((asset) => asset.speciesId === speciesId && asset.slot === 'hair' && asset.starter)
   const appearance = starterHair !== 'none' && starterHairOption?.id === starterHair ? { hair: starterHair } as const : {}
-  const previewPet: Pet = { id: 'preview', name: petName || 'Your Fable', speciesId, palette, pronouns, hunger: 100, mood: 100, cleanliness: 100, equipped: {}, appearance }
+  const previewPet: Pet = { id: 'preview', name: petName || 'Your Fable', speciesId, palette, pronouns, hunger: 100, mood: 100, cleanliness: 100, bondXp: 0, equipped: {}, appearance }
   const canContinue = step === 0 ? username.trim().length >= 3 && age : step === 1 ? Boolean(speciesId) : petName.trim().length >= 2
   useEffect(() => { window.scrollTo({ top: 0, behavior: 'auto' }) }, [step])
   const complete = async () => {

@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { CareKind, CustomizationDefinition, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameState, Pet, PetAppearance, PublicKeeperProfile, SpeciesId } from '../types'
+import type { CareKind, CustomizationDefinition, ExpeditionJournal, ExpeditionLocation, ExpeditionReward, ExpeditionState, GameReward, GameState, Pet, PetAppearance, PublicKeeperProfile, SpeciesId } from '../types'
 
 export type MaybePromise<T> = T | Promise<T>
 export type BackendMode = 'demo' | 'supabase'
@@ -29,7 +29,7 @@ export interface GameContextValue {
   respondFriendRequest: (requesterId: string, accept: boolean) => MaybePromise<void>
   createInviteCode: (label: string) => MaybePromise<string>
   startGame: (gameId: 'bloom-match' | 'starwhisk-sprint') => MaybePromise<string>
-  gameReward: (gameId: 'bloom-match' | 'starwhisk-sprint', score: number, runId: string) => MaybePromise<number>
+  gameReward: (gameId: 'bloom-match' | 'starwhisk-sprint', score: number, runId: string) => MaybePromise<GameReward>
   claimTask: (taskId: string) => MaybePromise<void>
   makeWish: () => MaybePromise<void>
   getExpedition: () => MaybePromise<ExpeditionState | null>

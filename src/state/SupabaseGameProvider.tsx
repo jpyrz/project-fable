@@ -31,6 +31,7 @@ interface CompanionPet {
   hunger: number
   mood: number
   cleanliness: number
+  bond_xp: number
   equipped: Record<string, string>
   appearance: Pet['appearance']
 }
@@ -140,6 +141,7 @@ function mapSnapshot(snapshot: Snapshot, companions: CompanionPet[], adventures:
     hunger: pet.hunger,
     mood: pet.mood,
     cleanliness: pet.cleanliness,
+    bondXp: pet.bond_xp ?? 0,
     equipped: pet.equipped,
     appearance: pet.appearance ?? {},
   }))
@@ -298,8 +300,8 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
       return result.run_id
     },
     async gameReward(_gameId, score, runId) {
-      const result = await rpc('submit_game_run', { p_run: runId, p_score: score, p_idempotency_key: crypto.randomUUID() }) as { reward: number }
-      await refresh(); return result.reward
+      const result = await rpc('submit_game_run', { p_run: runId, p_score: score, p_idempotency_key: crypto.randomUUID() }) as { reward: number; joy: number; bond_xp: number; item_id?: string }
+      await refresh(); return { coins: result.reward, joy: result.joy ?? 0, bondXp: result.bond_xp ?? 0, itemId: result.item_id }
     },
     async claimTask(taskId) { await rpc('claim_daily_task', { p_task: taskId, p_idempotency_key: crypto.randomUUID() }); await refresh() },
     async makeWish() { if (!state.dailyWishClaimed) { await rpc('claim_daily_wish', { p_idempotency_key: crypto.randomUUID() }); await refresh() } },
@@ -365,6 +367,7 @@ export function SupabaseGameProvider({ children }: { children: ReactNode }) {
           hunger: pet.hunger,
           mood: pet.mood,
           cleanliness: pet.cleanliness,
+          bondXp: pet.bond_xp ?? 0,
           equipped: pet.equipped,
           appearance: pet.appearance ?? {},
         } : null,

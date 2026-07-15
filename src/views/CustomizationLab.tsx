@@ -26,14 +26,14 @@ function readTransforms(): TransformMap {
 
 function fullAppearance(speciesId: SpeciesId): PetAppearance {
   const appearance: PetAppearance = {}
-  for (const asset of customizationAssets.filter((entry) => entry.speciesId === speciesId)) {
+  for (const asset of customizationAssets.filter((entry) => entry.speciesId === speciesId || entry.speciesId === 'all')) {
     if (!appearance[asset.slot]) appearance[asset.slot] = asset.id
   }
   return appearance
 }
 
 function labPet(speciesId: SpeciesId, appearance: PetAppearance, palette = 0): Pet {
-  return { id: `lab-${speciesId}`, name: 'Preview', speciesId, palette, pronouns: 'they/them', hunger: 100, mood: 100, cleanliness: 100, equipped: {}, appearance }
+  return { id: `lab-${speciesId}`, name: 'Preview', speciesId, palette, pronouns: 'they/them', hunger: 100, mood: 100, cleanliness: 100, bondXp: 0, equipped: {}, appearance }
 }
 
 function firstEditable(speciesId: SpeciesId) {
@@ -51,8 +51,8 @@ export function CustomizationLab() {
   const [guides, setGuides] = useState(true)
   const [copied, setCopied] = useState('')
   const selectedSpecies = species.find((entry) => entry.id === speciesId)!
-  const assets = customizationAssets.filter((entry) => entry.speciesId === speciesId)
-  const editing = customizationAssets.find((entry) => entry.id === editingId && entry.speciesId === speciesId) ?? assets[0]
+  const assets = customizationAssets.filter((entry) => entry.speciesId === speciesId || entry.speciesId === 'all')
+  const editing = customizationAssets.find((entry) => entry.id === editingId && (entry.speciesId === speciesId || entry.speciesId === 'all')) ?? assets[0]
   const activeTransform = editing ? transforms[editing.id] : undefined
   const previewPet = labPet(speciesId, appearance, palette)
   const changed = useMemo(() => {

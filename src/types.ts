@@ -1,7 +1,7 @@
 export type SpeciesId = 'mossling' | 'lumipup' | 'cloudkip' | 'pebblit'
-export type CareKind = 'food' | 'groom' | 'play'
+export type CareKind = 'groom'
 export type ItemCategory = 'food' | 'care' | 'material' | 'collectible' | 'accessory' | 'background'
-export type CustomizationSlot = 'marking' | 'hair' | 'outfit' | 'head'
+export type CustomizationSlot = 'background' | 'marking' | 'hair' | 'outfit' | 'head'
 export type PetAppearance = Partial<Record<CustomizationSlot, string>>
 
 export interface Species {
@@ -19,6 +19,7 @@ export interface Item {
   rarity: 'Common' | 'Uncommon' | 'Rare' | 'Mythic'
   price: number
   icon: string
+  artPath?: string
   description: string
 }
 
@@ -31,13 +32,14 @@ export interface Pet {
   hunger: number
   mood: number
   cleanliness: number
+  bondXp: number
   equipped: Partial<Record<'head' | 'neck' | 'held' | 'background', string>>
   appearance: PetAppearance
 }
 
 export interface CustomizationDefinition {
   id: string
-  speciesId: SpeciesId
+  speciesId: SpeciesId | 'all'
   slot: CustomizationSlot
   label: string
   description: string
@@ -49,6 +51,13 @@ export interface CustomizationDefinition {
   hidesSlots?: CustomizationSlot[]
   source: string
   unlocked: boolean
+}
+
+export interface GameReward {
+  coins: number
+  joy: number
+  bondXp: number
+  itemId?: string
 }
 
 export interface DailyTask {

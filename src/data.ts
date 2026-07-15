@@ -33,8 +33,12 @@ const expeditionItemOverrides: Record<number, Partial<Item>> = {
   117: { name: 'Moonroot Crystal', category: 'material', rarity: 'Uncommon', icon: '🔮', description: 'A violet crystal grown around an ancient moonroot.' },
   118: { name: 'Echo Geode', category: 'material', rarity: 'Uncommon', icon: '🪨', description: 'A geode that quietly repeats happy sounds.' },
   119: { name: 'Cave Star', category: 'collectible', rarity: 'Rare', icon: '🌟', description: 'A rare fallen star found in the deepest cavern pocket.' },
-  120: { name: 'Moonroot Sky', category: 'background', rarity: 'Mythic', icon: '🌌', description: 'A dreamy cavern sky crafted from Moonroot discoveries.' },
-  121: { name: 'Sunberry Tunic', category: 'accessory', rarity: 'Uncommon', icon: '🧥', description: 'A warm coral tunic tailored by the Bramblewick workshop.' },
+  16: { artPath: '/pets/customization/mossling/layers/head-sunny-day-hat.png' },
+  22: { artPath: '/items/backgrounds/garden-backdrop.svg' },
+  23: { artPath: '/items/backgrounds/twilight-backdrop.svg' },
+  24: { artPath: '/items/backgrounds/river-backdrop.svg' },
+  120: { name: 'Moonroot Sky', category: 'background', rarity: 'Mythic', icon: '🌌', artPath: '/items/backgrounds/moonroot-sky.svg', description: 'A dreamy cavern sky crafted from Moonroot discoveries.' },
+  121: { name: 'Sunberry Tunic', category: 'accessory', rarity: 'Uncommon', icon: '🧥', artPath: '/pets/customization/mossling/layers/outfit-sunberry-tunic-v4.png', description: 'A warm coral tunic tailored by the Bramblewick workshop.' },
 }
 export const items: Item[] = Array.from({ length: 121 }, (_, index) => {
   const seed = itemSeeds[index % itemSeeds.length]
@@ -53,7 +57,7 @@ export const items: Item[] = Array.from({ length: 121 }, (_, index) => {
   }
 })
 
-export const featuredShopItems = items.slice(0, 12)
+export const featuredShopItems = [...items.slice(0, 9), ...items.slice(21, 24)]
 
 export const recipes = [
   { id: 'sun-hat', output: 'item-16', level: 1, needs: [{ id: 'item-10', count: 2 }, { id: 'item-14', count: 1 }] },

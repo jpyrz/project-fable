@@ -2,6 +2,8 @@ import { Award, BookOpen, Heart, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { PetAvatar } from '../components/PetAvatar'
+import { customizationAsset } from '../customizationData'
+import { ItemArtwork } from '../components/ItemArtwork'
 import { items } from '../data'
 import { getSpecies, useGame } from '../state/GameContext'
 import type { PublicKeeperProfile } from '../types'
@@ -27,11 +29,12 @@ export function KeeperProfile() {
   if (!profile) return <main className={styles.state}><b>✦</b><h1>Opening Keeper profile…</h1></main>
 
   const pet = profile.activePet
+  const scene = pet?.appearance.background ? customizationAsset(pet.appearance.background) : undefined
   const levelProgress = profile.reputationXp % 100
   return <div className={styles.page}>
     <section className={styles.banner}>
       <div className={styles.identity}><div className={styles.avatar}>{profile.username.slice(0, 1)}</div><div><span>KEEPER PROFILE</span><h1>{profile.username}</h1><p>Showing off a little corner of Bramblewick.</p></div></div>
-      {pet && <div className={styles.pet}><PetAvatar pet={pet} /><div><span>ACTIVE COMPANION</span><h2>{pet.name}</h2><p>{getSpecies(pet.speciesId).name} · Custom look</p></div></div>}
+      {pet && <div className={`${styles.pet} ${scene ? styles.hasScene : ''}`} style={scene ? { '--pet-scene': `url("${scene.assetPath}")` } as React.CSSProperties : undefined}><PetAvatar pet={pet} showBackground={false} /><div><span>ACTIVE COMPANION</span><h2>{pet.name}</h2><p>{getSpecies(pet.speciesId).name} · Custom look</p></div></div>}
     </section>
     <section className={styles.stats}><article><Award /><b>Reputation Level {profile.reputation}</b><span>{levelProgress}/100 to Level {profile.reputation + 1}</span></article><article><BookOpen /><b>{profile.collected.length} highlights</b><span>Favorite collection finds</span></article><article><Users /><b>{profile.friendCount} friends</b><span>Keepers in their circle</span></article></section>
     <section className={styles.badges}><header><div><span>EXPEDITION BADGES</span><h2>Field achievements</h2></div><Award /></header>{profile.badges.length ? <div>{profile.badges.map((badge) => <article key={badge.id}><b>{badge.icon}</b><strong>{badge.label}</strong><small>{badge.description}</small></article>)}</div> : <p>No expedition badges earned yet.</p>}</section>
@@ -42,5 +45,5 @@ export function KeeperProfile() {
 }
 
 function Showcase({ title, eyebrow, ids, icon, empty }: { title: string; eyebrow: string; ids: string[]; icon: ReactNode; empty: string }) {
-  return <section className={styles.showcase}><header><div><span>{eyebrow}</span><h2>{title}</h2></div>{icon}</header>{ids.length ? <div>{ids.map((id) => { const item = items.find((entry) => entry.id === id); return item ? <article key={id}><b>{item.icon}</b><span>{item.name}</span></article> : null })}</div> : <p>{empty}</p>}</section>
+  return <section className={styles.showcase}><header><div><span>{eyebrow}</span><h2>{title}</h2></div>{icon}</header>{ids.length ? <div>{ids.map((id) => { const item = items.find((entry) => entry.id === id); return item ? <article key={id}><b><ItemArtwork item={item} /></b><span>{item.name}</span></article> : null })}</div> : <p>{empty}</p>}</section>
 }

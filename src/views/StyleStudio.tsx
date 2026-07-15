@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useCelebration } from '../components/Celebration'
 import { PetAvatar } from '../components/PetAvatar'
-import { customizationSlots } from '../customizationData'
+import { customizationAsset, customizationSlots } from '../customizationData'
 import { getSpecies, useGame } from '../state/GameContext'
 import type { CustomizationDefinition, CustomizationSlot, PetAppearance } from '../types'
 import styles from './StyleStudio.module.scss'
@@ -51,13 +51,14 @@ export function StyleStudio() {
   }
 
   const species = getSpecies(activePet.speciesId)
+  const scene = appearance.background ? customizationAsset(appearance.background) : undefined
   const visibleSlots = customizationSlots.filter((slot) => slot.tab === tab)
   return <div className={styles.page}>
     <header className={styles.header}><Link to="/pet" aria-label={`Back to ${activePet.name}`}><ChevronLeft /></Link><div><span>BRAMBLEWICK STYLE STUDIO</span><h1>Make the look yours</h1><p>Physical traits are permanent unlocks. Wardrobe pieces come from your adventures and collection.</p></div><Scissors /></header>
     <div className={styles.workspace}>
-      <aside className={styles.preview}>
+      <aside className={`${styles.preview} ${scene ? styles.hasScene : ''}`} style={scene ? { '--pet-scene': `url("${scene.assetPath}")` } as React.CSSProperties : undefined}>
         <div className={styles.sparkles}>✦ · ✧ · ✦</div>
-        <PetAvatar pet={previewPet} />
+        <PetAvatar pet={previewPet} showBackground={false} />
         <div className={styles.previewName}><span>LIVE PREVIEW</span><strong>{activePet.name}</strong><small>{species.name} · Palette {palette + 1}</small></div>
       </aside>
       <main className={styles.controls}>

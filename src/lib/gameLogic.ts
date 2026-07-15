@@ -2,6 +2,14 @@ export function calculateGameReward(score: number) {
   return Math.min(90, Math.max(10, Math.floor(score / 3)))
 }
 
+export function calculateBondReward(score: number) {
+  return Math.min(16, 8 + Math.floor(Math.max(0, score) / 100) * 2)
+}
+
+export function petBondLevel(xp: number) {
+  return Math.floor(Math.max(0, xp) / 100) + 1
+}
+
 export function calculateMarketFee(total: number) {
   return Math.ceil(total * 0.05)
 }

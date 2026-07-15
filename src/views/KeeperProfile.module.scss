@@ -30,4 +30,5 @@
 .state > b { font-size:3rem; }
 .state h1 { margin:8px 0 0; color:var(--plum); font:800 1.5rem var(--display); }
 .state p { margin:4px 0; }
+.pet.hasScene { background-image:linear-gradient(rgba(50,31,47,.24),rgba(50,31,47,.5)),var(--pet-scene); background-size:cover; background-position:center; text-shadow:0 1px 4px rgba(38,22,35,.55); }
 @media (min-width:650px) { .page { padding-bottom:50px; }.stats { grid-template-columns:repeat(3,1fr); }.showcase > div { grid-template-columns:repeat(6,1fr); }.banner { display:grid; grid-template-columns:1fr 1fr; }.pet { justify-content:center; } }

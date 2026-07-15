@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#72cbdc"/><stop offset="1" stop-color="#e7f4c8"/></linearGradient><linearGradient id="water" x2="0" y2="1"><stop stop-color="#79d5d7"/><stop offset="1" stop-color="#3caab8"/></linearGradient></defs>
+  <rect width="1024" height="1024" fill="url(#sky)"/><path d="M0 610Q180 430 360 600T720 570T1024 520V1024H0Z" fill="#72bd76"/><path d="M0 730Q160 610 350 720T710 690T1024 645V1024H0Z" fill="#4f9f68"/>
+  <path d="M420 1024Q330 850 455 700Q550 580 700 590Q590 710 640 1024Z" fill="url(#water)"/><g fill="none" stroke="#c9ffff" stroke-width="12" opacity=".55"><path d="M445 825q90 35 170 0"/><path d="M430 900q105 38 200 0"/></g>
+  <g fill="#fff" opacity=".75"><circle cx="150" cy="170" r="50"/><circle cx="205" cy="160" r="72"/><circle cx="267" cy="178" r="45"/></g><g fill="#486f52"><path d="M155 610v220" stroke="#6f5540" stroke-width="28"/><circle cx="150" cy="570" r="105"/><path d="M870 560v250" stroke="#6f5540" stroke-width="30"/><circle cx="870" cy="520" r="120"/></g>
+</svg>

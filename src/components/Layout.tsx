@@ -1,7 +1,6 @@
-import { Backpack, Bell, Coins, Map, MessageCircle, PawPrint, ShoppingBag } from 'lucide-react'
+import { Backpack, Bell, CircleUserRound, Coins, Map, MessageCircle, PawPrint, ShoppingBag } from 'lucide-react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useGame } from '../state/GameContext'
-import { PetAvatar } from './PetAvatar'
 import styles from './Layout.module.scss'
 
 const nav = [
@@ -13,7 +12,7 @@ const nav = [
 ]
 
 export function Layout() {
-  const { state, activePet, markNotificationsRead } = useGame()
+  const { state, markNotificationsRead } = useGame()
   const navigate = useNavigate()
   const unread = state.notifications.filter((note) => !note.read).length
   return (
@@ -23,7 +22,7 @@ export function Layout() {
         <div className={styles.status}>
           <span className={styles.coins}><Coins size={17} /> {state.coins.toLocaleString()}</span>
           <button className={styles.bell} aria-label={`${unread} unread notifications`} onClick={() => { void markNotificationsRead(); navigate('/inbox') }}><Bell size={20} />{unread > 0 && <i>{unread}</i>}</button>
-          {activePet && <button className={styles.avatar} onClick={() => navigate('/profile')}><PetAvatar pet={activePet} size="small" /></button>}
+          <button className={styles.avatar} aria-label="Open Keeper profile" onClick={() => navigate('/profile')}><CircleUserRound /></button>
         </div>
       </header>
       <main className={styles.main}><Outlet /></main>

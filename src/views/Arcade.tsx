@@ -2,10 +2,12 @@ import { ArrowLeft, Play, Sparkles, Timer, Trophy } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createBloomDeck } from '../lib/gameLogic'
 import { useGame } from '../state/GameContext'
+import type { GameReward } from '../types'
 import styles from './Arcade.module.scss'
 
 type Mode = 'menu' | 'bloom' | 'star'
-type RunResult = { reward: number; error?: string }
+type RunResult = { reward: GameReward; error?: string }
+const emptyReward: GameReward = { coins: 0, joy: 0, bondXp: 0 }
 
 function errorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) return error.message
@@ -64,7 +66,7 @@ function BloomMatch({ close }: { close: () => void }) {
     setActive(false)
     setSubmitting(true)
     try { setResult({ reward: await gameReward('bloom-match', scoreRef.current, runId) }) }
-    catch (error) { setResult({ reward: 0, error: errorMessage(error, 'The reward could not be saved.') }) }
+    catch (error) { setResult({ reward: emptyReward, error: errorMessage(error, 'The reward could not be saved.') }) }
     finally { setSubmitting(false) }
   }
   const { time, reset: resetCountdown } = useCountdown(active, finish)
@@ -119,7 +121,7 @@ function StarCatch({ close }: { close: () => void }) {
     setActive(false)
     setSubmitting(true)
     try { setResult({ reward: await gameReward('starwhisk-sprint', scoreRef.current, runId) }) }
-    catch (error) { setResult({ reward: 0, error: errorMessage(error, 'The reward could not be saved.') }) }
+    catch (error) { setResult({ reward: emptyReward, error: errorMessage(error, 'The reward could not be saved.') }) }
     finally { setSubmitting(false) }
   }
   const { time, reset: resetCountdown } = useCountdown(active, finish)
@@ -141,4 +143,4 @@ function StarCatch({ close }: { close: () => void }) {
 function GameShell({ title, time, score, close, children }: { title: string; time: number; score: number; close: () => void; children: React.ReactNode }) { return <section className={styles.gameShell}><header><button onClick={close}><ArrowLeft /> Exit</button><h1>{title}</h1><div><span><Timer /> {time}s</span><span><Sparkles /> {score}</span></div></header><div className={styles.playfield}>{children}</div></section> }
 function StartOverlay({ icon, title, onStart, starting, error }: { icon: string; title: string; onStart: () => void; starting: boolean; error: string }) { return <div className={styles.overlay}><b>{icon}</b><h2>{title}</h2><p>You have 30 seconds. Rewards are granted when the run ends.</p>{error && <p className={styles.gameError} role="alert">{error}</p>}<button onClick={onStart} disabled={starting}><Play fill="currentColor" /> {starting ? 'Opening game…' : 'Start game'}</button></div> }
 function ResultPending() { return <div className={styles.overlay} aria-live="polite"><b className={styles.tally}>✦</b><h2>Tallying your sparkles…</h2><p>Your score is safe while Bramblewick prepares the reward.</p></div> }
-function Result({ title, score, result, close, replay }: { title: string; score: number; result: RunResult; close: () => void; replay: () => void }) { return <div className={`${styles.overlay} ${result.error ? '' : styles.victory}`} role="dialog" aria-live="polite">{!result.error && <div className={styles.confetti} aria-hidden="true">{Array.from({ length: 16 }, (_, index) => <i key={index}>✦</i>)}</div>}<b>🏆</b><h2>{title}</h2>{result.error ? <p className={styles.gameError}>You scored {score}, but the reward could not be saved: {result.error}</p> : <><strong className={styles.cheer}>Wonderful run!</strong><p>You scored {score} and earned <strong>{result.reward} Dewdrops</strong>.</p></>}<div className={styles.resultActions}><button onClick={replay}><Play fill="currentColor" /> Play again</button><button className={styles.closeResult} onClick={close}>Close</button></div></div> }
+function Result({ title, score, result, close, replay }: { title: string; score: number; result: RunResult; close: () => void; replay: () => void }) { return <div className={`${styles.overlay} ${result.error ? '' : styles.victory}`} role="dialog" aria-live="polite">{!result.error && <div className={styles.confetti} aria-hidden="true">{Array.from({ length: 16 }, (_, index) => <i key={index}>✦</i>)}</div>}<b>🏆</b><h2>{title}</h2>{result.error ? <p className={styles.gameError}>You scored {score}, but the reward could not be saved: {result.error}</p> : <><strong className={styles.cheer}>Wonderful teamwork!</strong><p>You scored {score}. Your companion had fun and grew closer to you.</p><div className={styles.rewardSummary}><span><b>✦ {result.reward.coins}</b><small>Dewdrops</small></span><span><b>💗 +{result.reward.joy}</b><small>Joy</small></span><span><b>🤝 +{result.reward.bondXp}</b><small>Bond XP</small></span></div></>}<div className={styles.resultActions}><button onClick={replay}><Play fill="currentColor" /> Play again</button><button className={styles.closeResult} onClick={close}>Close</button></div></div> }

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { items } from '../data'
 import { customizationAssetForItem } from '../customizationData'
+import { ItemArtwork } from '../components/ItemArtwork'
 import { useGame } from '../state/GameContext'
 import type { ItemCategory } from '../types'
 import styles from './Bag.module.scss'
@@ -48,7 +49,7 @@ export function Bag() {
       const fitted = activePet ? customizationAssetForItem(item.id, activePet.speciesId) : undefined
       const isWearing = fitted ? activePet?.appearance[fitted.slot] === fitted.id : false
       return <article className={styles.card} key={item.id}>
-        <div className={styles.art}><span>{item.icon}</span><b>×{state.inventory[item.id]}</b></div>
+        <div className={styles.art}><ItemArtwork item={item} /><b>×{state.inventory[item.id]}</b></div>
         <div className={styles.itemInfo}><span className={`${styles.rarity} ${styles[item.rarity.toLowerCase()]}`}>{item.rarity}</span><h2>{item.name}</h2><p>{item.description}</p></div>
         <div className={styles.actions}>
           {isCosmetic && (fitted ? <Link className={styles.primaryAction} to="/style-studio?tab=wardrobe"><Shirt />{isWearing ? 'Adjust look' : 'Try on'}</Link> : <button disabled><Shirt />Not fitted</button>)}

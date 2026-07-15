@@ -9,18 +9,21 @@ interface PetAvatarProps {
   transformOverrides?: Record<string, CustomizationAsset['transform']>
   debug?: boolean
   selectedAssetId?: string
+  showBackground?: boolean
 }
 
-export function PetAvatar({ pet, size = 'large', transformOverrides = {}, debug = false, selectedAssetId }: PetAvatarProps) {
+export function PetAvatar({ pet, size = 'large', transformOverrides = {}, debug = false, selectedAssetId, showBackground = true }: PetAvatarProps) {
   const kind = getSpecies(pet.speciesId)
-  const selectedLayers = Object.values(pet.appearance ?? {}).map(customizationAsset).filter((asset) => asset?.speciesId === pet.speciesId).map((asset) => asset && transformOverrides[asset.id] ? { ...asset, transform: transformOverrides[asset.id] } : asset)
+  const selectedLayers = Object.values(pet.appearance ?? {}).map(customizationAsset).filter((asset) => asset?.speciesId === pet.speciesId || asset?.speciesId === 'all').map((asset) => asset && transformOverrides[asset.id] ? { ...asset, transform: transformOverrides[asset.id] } : asset)
   const hiddenSlots = new Set(selectedLayers.flatMap((asset) => asset?.hidesSlots ?? []))
-  const appearanceLayers = selectedLayers.filter((asset) => asset && !hiddenSlots.has(asset.slot)).sort((a, b) => a!.layer - b!.layer)
+  const background = selectedLayers.find((asset) => asset?.slot === 'background')
+  const appearanceLayers = selectedLayers.filter((asset) => asset && asset.slot !== 'background' && !hiddenSlots.has(asset.slot)).sort((a, b) => a!.layer - b!.layer)
   const baseArt = `/pets/customization/${pet.speciesId}/base.png`
   return (
     <div className={`${styles.frame} ${styles[size]} ${styles[`palette${pet.palette}`]} ${debug ? styles.debug : ''}`} style={{ '--pet-color': kind.colors[pet.palette] } as React.CSSProperties} aria-label={`${pet.name} the ${kind.name}`}>
       <span className={styles.aura} />
       <div className={styles.artStack}>
+        {showBackground && background && <img className={styles.background} src={background.assetPath} alt="" draggable={false} />}
         <img className={`${styles.petArt} ${styles.tintable}`} src={baseArt} alt="" draggable={false} />
         {appearanceLayers.map((asset) => asset && <img
           key={asset.id}
